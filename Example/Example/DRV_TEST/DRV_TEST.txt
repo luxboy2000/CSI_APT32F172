@@ -1,0 +1,1 @@
+Obj/main.o Obj/drv_devices.o Obj/drv_dw_syscon.o Obj/drv_isr.o Obj/drv_lib.o Obj/drv_startup.o Obj/drv_system.o Obj/drv_trap_c.o Obj/drv_vectors.o Obj/drv_minilibc_port.o Obj/__rt_entry.o

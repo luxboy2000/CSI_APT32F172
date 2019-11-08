@@ -1,0 +1,303 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Project Name="DRV_TEST" Version="1" Language="C">
+  <Description/>
+  <Dependencies Name="Debug"/>
+  <VirtualDirectory Name="src">
+    <File Name="main.c">
+      <FileOption/>
+    </File>
+    <VirtualDirectory Name="config">
+      <File Name="config/csi_config.h">
+        <FileOption/>
+      </File>
+    </VirtualDirectory>
+    <File Name="ckcpu.ld">
+      <FileOption/>
+    </File>
+  </VirtualDirectory>
+  <VirtualDirectory Name="csi_driver">
+    <VirtualDirectory Name="drv">
+      <File Name="../../../Source/csi_driver/drv/devices.c">
+        <FileOption/>
+      </File>
+      <File Name="../../../Source/csi_driver/drv/dw_syscon.c">
+        <FileOption/>
+      </File>
+      <VirtualDirectory Name="include">
+        <File Name="../../../Source/csi_driver/drv/include/soc.h">
+          <FileOption/>
+        </File>
+        <File Name="../../../Source/csi_driver/drv/include/lib.h">
+          <FileOption/>
+        </File>
+      </VirtualDirectory>
+      <File Name="../../../Source/csi_driver/drv/isr.c">
+        <FileOption/>
+      </File>
+      <File Name="../../../Source/csi_driver/drv/lib.c">
+        <FileOption/>
+      </File>
+      <File Name="../../../Source/csi_driver/drv/startup.S">
+        <FileOption/>
+      </File>
+      <File Name="../../../Source/csi_driver/drv/system.c">
+        <FileOption/>
+      </File>
+      <File Name="../../../Source/csi_driver/drv/trap_c.c">
+        <FileOption/>
+      </File>
+      <File Name="../../../Source/csi_driver/drv/vectors.S">
+        <FileOption/>
+      </File>
+      <File Name="../../../Source/csi_driver/drv/minilibc_port.c">
+        <FileOption/>
+      </File>
+    </VirtualDirectory>
+    <VirtualDirectory Name="include">
+      <File Name="../../../Source/csi_driver/include/apt_adc.h">
+        <FileOption/>
+      </File>
+      <File Name="../../../Source/csi_driver/include/apt_cmp.h">
+        <FileOption/>
+      </File>
+      <File Name="../../../Source/csi_driver/include/apt_epwm.h">
+        <FileOption/>
+      </File>
+      <File Name="../../../Source/csi_driver/include/apt_gpio.h">
+        <FileOption/>
+      </File>
+      <File Name="../../../Source/csi_driver/include/apt_i2c.h">
+        <FileOption/>
+      </File>
+      <File Name="../../../Source/csi_driver/include/apt_ifc.h">
+        <FileOption/>
+      </File>
+      <File Name="../../../Source/csi_driver/include/apt_led.h">
+        <FileOption/>
+      </File>
+      <File Name="../../../Source/csi_driver/include/apt_opa.h">
+        <FileOption/>
+      </File>
+      <File Name="../../../Source/csi_driver/include/apt_spi.h">
+        <FileOption/>
+      </File>
+      <File Name="../../../Source/csi_driver/include/apt_syscon.h">
+        <FileOption/>
+      </File>
+      <File Name="../../../Source/csi_driver/include/apt_tc0.h">
+        <FileOption/>
+      </File>
+      <File Name="../../../Source/csi_driver/include/apt_tc1.h">
+        <FileOption/>
+      </File>
+      <File Name="../../../Source/csi_driver/include/apt_tc2.h">
+        <FileOption/>
+      </File>
+      <File Name="../../../Source/csi_driver/include/apt_tc3.h">
+        <FileOption/>
+      </File>
+      <File Name="../../../Source/csi_driver/include/apt_tkey.h">
+        <FileOption/>
+      </File>
+      <File Name="../../../Source/csi_driver/include/apt_uart.h">
+        <FileOption/>
+      </File>
+      <File Name="../../../Source/csi_driver/include/apt_usart.h">
+        <FileOption/>
+      </File>
+    </VirtualDirectory>
+  </VirtualDirectory>
+  <MonitorProgress>
+    <DebugLaunch>84</DebugLaunch>
+    <FlashOperate>43</FlashOperate>
+  </MonitorProgress>
+  <BuildConfigs>
+    <BuildConfig Name="BuildSet">
+      <Target>
+        <ROMBank Selected="1">
+          <ROM1>
+            <InUse>no</InUse>
+            <Start>0x0</Start>
+            <Size>0x1000</Size>
+          </ROM1>
+          <ROM2>
+            <InUse>no</InUse>
+            <Start/>
+            <Size/>
+          </ROM2>
+          <ROM3>
+            <InUse>no</InUse>
+            <Start/>
+            <Size/>
+          </ROM3>
+          <ROM4>
+            <InUse>no</InUse>
+            <Start/>
+            <Size/>
+          </ROM4>
+          <ROM5>
+            <InUse>no</InUse>
+            <Start/>
+            <Size/>
+          </ROM5>
+        </ROMBank>
+        <RAMBank>
+          <RAM1>
+            <InUse>no</InUse>
+            <Start>0x20000000</Start>
+            <Size>0x1000</Size>
+            <Init>yes</Init>
+          </RAM1>
+          <RAM2>
+            <InUse>no</InUse>
+            <Start/>
+            <Size/>
+            <Init>yes</Init>
+          </RAM2>
+          <RAM3>
+            <InUse>no</InUse>
+            <Start/>
+            <Size/>
+            <Init>yes</Init>
+          </RAM3>
+          <RAM4>
+            <InUse>no</InUse>
+            <Start/>
+            <Size/>
+            <Init>yes</Init>
+          </RAM4>
+          <RAM5>
+            <InUse>no</InUse>
+            <Start/>
+            <Size/>
+            <Init>yes</Init>
+          </RAM5>
+        </RAMBank>
+        <CPU>ck801</CPU>
+        <UseMiniLib>yes</UseMiniLib>
+        <Endian>little</Endian>
+        <UseHardFloat>no</UseHardFloat>
+        <UseEnhancedLRW>yes</UseEnhancedLRW>
+        <UseContinueBuild>no</UseContinueBuild>
+        <UseSemiHost>no</UseSemiHost>
+      </Target>
+      <Output>
+        <OutputName>$(ProjectName)</OutputName>
+        <Type>Executable</Type>
+        <CreateHexFile>no</CreateHexFile>
+        <CreateBinFile>no</CreateBinFile>
+        <Preprocessor>yes</Preprocessor>
+        <Disasm>yes</Disasm>
+        <CallGraph>yes</CallGraph>
+        <Map>yes</Map>
+      </Output>
+      <User>
+        <BeforeCompile>
+          <RunUserProg>no</RunUserProg>
+          <UserProgName/>
+        </BeforeCompile>
+        <BeforeMake>
+          <RunUserProg>no</RunUserProg>
+          <UserProgName/>
+        </BeforeMake>
+        <AfterMake>
+          <RunUserProg>no</RunUserProg>
+          <UserProgName/>
+        </AfterMake>
+      </User>
+      <Compiler>
+        <Define/>
+        <Undefine/>
+        <Optim>None (-O0)</Optim>
+        <DebugLevel>Maximum (-g3)</DebugLevel>
+        <IncludePath>$(CDKPath)/CSKY/csi/csi_core/csi_cdk/;$(CDKPath)/CSKY/csi/csi_core/include/;$(CDKPath)/CSKY/csi/csi_driver/include/;$(ProjectPath);$(ProjectPath)/../../../Source/csi_core/include;$(ProjectPath)/../../../Source/csi_driver/drv/include;$(ProjectPath)/../../../Source/csi_driver/include;$(ProjectPath)//config</IncludePath>
+        <OtherFlags/>
+        <Verbose>no</Verbose>
+        <Ansi>no</Ansi>
+        <Syntax>no</Syntax>
+        <Pedantic>no</Pedantic>
+        <PedanticErr>no</PedanticErr>
+        <InhibitWarn>no</InhibitWarn>
+        <AllWarn>yes</AllWarn>
+        <WarnErr>no</WarnErr>
+        <OneElfS>no</OneElfS>
+        <Fstrict>no</Fstrict>
+      </Compiler>
+      <Asm>
+        <Define/>
+        <Undefine/>
+        <IncludePath>$(CDKPath)/CSKY/csi/csi_core/csi_cdk/;$(CDKPath)/CSKY/csi/csi_core/include/;$(ProjectPath)/../../../Source/csi_driver/drv/include;$(ProjectPath)/../../../Source/csi_driver/include;$(ProjectPath)//config</IncludePath>
+        <OtherFlags/>
+        <DebugLevel>gdwarf2</DebugLevel>
+      </Asm>
+      <Linker>
+        <Garbage>yes</Garbage>
+        <LDFile>G:\SW_HOME\CSKY\CSI\APT32F172A\drv\Example\Example\DRV_TEST\ckcpu.ld</LDFile>
+        <LibName/>
+        <LibPath/>
+        <OtherFlags/>
+        <AutoLDFile>no</AutoLDFile>
+      </Linker>
+      <Debug>
+        <LoadApplicationAtStartup>yes</LoadApplicationAtStartup>
+        <Connector>ICE</Connector>
+        <StopAt>yes</StopAt>
+        <StopAtText>main</StopAtText>
+        <InitFile>$(ProjectPath)/gdb.init</InitFile>
+        <AutoRun>yes</AutoRun>
+        <ResetType>Soft Reset</ResetType>
+        <SoftResetVal>abcd1234</SoftResetVal>
+        <ResetAfterLoad>yes</ResetAfterLoad>
+        <Dumpcore>no</Dumpcore>
+        <DumpcoreText>$(ProjectPath)/$(ProjectName).cdkcore</DumpcoreText>
+        <ConfigICE>
+          <IP>localhost</IP>
+          <PORT>1025</PORT>
+          <Clock>12000</Clock>
+          <Delay>10</Delay>
+          <WaitReset>50</WaitReset>
+          <DDC>yes</DDC>
+          <TRST>no</TRST>
+          <DebugPrint>no</DebugPrint>
+          <Connect>Normal</Connect>
+          <ResetType>Soft Reset</ResetType>
+          <SoftResetVal>abcd1234</SoftResetVal>
+          <RTOSType>Bare Metal</RTOSType>
+          <DownloadToFlash>yes</DownloadToFlash>
+          <ResetAfterConnect>yes</ResetAfterConnect>
+          <GDBName/>
+          <GDBServerType>Local</GDBServerType>
+          <OtherFlags/>
+        </ConfigICE>
+        <ConfigSIM>
+          <SIMTarget/>
+          <OtherFlags/>
+          <NoGraphic>yes</NoGraphic>
+          <Log>no</Log>
+          <SimTrace>no</SimTrace>
+        </ConfigSIM>
+      </Debug>
+      <Flash>
+        <InitFile/>
+        <Erase>Erase Full Chip</Erase>
+        <Algorithms Path="">APT32F172_FLASHDOWN.elf</Algorithms>
+        <Program>yes</Program>
+        <Verify>yes</Verify>
+        <ResetAndRun>yes</ResetAndRun>
+        <External>no</External>
+        <Command/>
+        <Arguments/>
+      </Flash>
+    </BuildConfig>
+  </BuildConfigs>
+  <DebugSessions>
+    <watchExpressions/>
+    <memoryExpressions>0000;;;</memoryExpressions>
+    <statistics>;;MHZ</statistics>
+    <peripheralTabs/>
+    <WatchDisplayFormat>0</WatchDisplayFormat>
+    <LocalDisplayFormat>0</LocalDisplayFormat>
+    <peripheralsDisFormat>Hex</peripheralsDisFormat>
+    <debugLayout/>
+  </DebugSessions>
+</Project>
