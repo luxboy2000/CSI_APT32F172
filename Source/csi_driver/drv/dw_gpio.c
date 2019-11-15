@@ -42,23 +42,8 @@ igrp_handle_t H_EXIGRP  = (APT_IGRP_Reg_t   *)APT_EXIGRP_BASE;
 
 typedef union {
     struct {
-        uint32_t P00 : 4;
-        uint32_t P01 : 4;
-        uint32_t P02 : 4;
-        uint32_t P03 : 4;
-        uint32_t P04 : 4;
-        uint32_t P05 : 4;
-        uint32_t P06 : 4;
-        uint32_t P07 : 4;
-        uint32_t P08 : 4;
-        uint32_t P09 : 4;
-        uint32_t P10 : 4;
-        uint32_t P11 : 4;
-        uint32_t P12 : 4;
-        uint32_t P13 : 4;
-        uint32_t P14 : 4;
-        uint32_t P15 : 4;
-    } b;
+        uint32_t PIN_PRIM : 4;
+    } PIN[16];
     struct {
         uint32_t CONLR;
         uint32_t CONHR;
@@ -490,63 +475,34 @@ int32_t csi_gpio_pin_func_config(gpio_pin_name gpio_pin, gpio_mode_e pin_mode)
     
     switch (port_idx) {
         case 1: // PORTA0
-            gpio_pa0_config.CONR &= ()
-            handle->CONLR = gpio_pa0_config.CONLR;
-            handle->CONHR = gpio_pa0_config.CONHR;
-            handle->PUDR = pullst;
+            gpio_pa0_config.PIN[pin_idx]= pin_mode;
+            H_GPIOA0->CONLR = gpio_pa0_config.CONLR;
+            H_GPIOA0->CONHR = gpio_pa0_config.CONHR;
             break;
         case 2: // PORTA1
-            gpio_pa1_config = conr_val;
-            handle->CONLR = gpio_pa1_config.CONLR;
-            handle->CONHR = gpio_pa1_config.CONHR;
-            handle->PUDR = pullst;
+            gpio_pa1_config.PIN[pin_idx]= pin_mode;
+            H_GPIOA1->CONLR = gpio_pa1_config.CONLR;
+            H_GPIOA1->CONHR = gpio_pa1_config.CONHR;
             break;
         case 3: // PORTB0
-            gpio_pb0_config = conr_val;
-            handle->CONLR = gpio_pb0_config.CONLR;
-            handle->CONHR = gpio_pb0_config.CONHR;
-            handle->PUDR = pullst;
+            gpio_pb0_config.PIN[pin_idx]= pin_mode;
+            H_GPIOB0->CONLR = gpio_pb0_config.CONLR;
+            H_GPIOB0->CONHR = gpio_pb0_config.CONHR;
             break;
         case 4: // PORTC0
-            gpio_pc0_config = conr_val;
-            handle->CONLR = gpio_pc0_config.CONLR;
-            handle->CONHR = gpio_pc0_config.CONHR;
-            handle->PUDR = pullst;
+            gpio_pc0_config.PIN[pin_idx]= pin_mode;
+            H_GPIOC0->CONLR = gpio_pc0_config.CONLR;
+            H_GPIOC0->CONHR = gpio_pc0_config.CONHR;
             break;
         case 5: // PORTD0
-            gpio_pd0_config = conr_val;
-            handle->CONLR = gpio_pd0_config.CONLR;
-            handle->CONHR = gpio_pd0_config.CONHR;
-            handle->PUDR = pullst;
+            gpio_pd0_config.PIN[pin_idx]= pin_mode;
+            H_GPIOD0->CONLR = gpio_pd0_config.CONLR;
+            H_GPIOD0->CONHR = gpio_pd0_config.CONHR;
             break;
-        default:
-            return ERR_GPIO(GPIO_ERROR_PORTSEL);
     }
 
     return 0;
- 
-
-
-    uint32_t pin_idx = target_gpio_pin_init(gpio_pin, &port_idx);
-
-    uint32_t idx = pin_idx;
-
-    for (i = 0; i < port_idx; i++) {
-        idx += (gpio_handle[i].pin_num);
-    }
-
-    dw_gpio_pin_priv_t *gpio_pin_priv = &(gpio_pin_handle[idx]);
-    gpio_pin_priv->portidx = port_idx;
-
-
-    gpio_pin_priv->idx = pin_idx;
-    gpio_pin_priv->cb = cb_event;
-
-    return (gpio_pin_handle_t)gpio_pin_priv;
-}
-
-
-
+} 
 
 /**
   @brief       Individual pin config, including all characteristics.
