@@ -319,6 +319,16 @@ gpio_port_handle_t csi_gpio_port_initialize(int32_t port)
     return (gpio_port_handle_t)gpio_priv;
 }
 
+void gpio_pin_char_set(uint32_t * target, uint32_t pin_idx, uint32_t value)
+{
+    uint32_t cur_val = *target;
+    cur_val &= ~(3ul<<pin_idx);
+    cur_val |= (value<<pin_idx);
+    *target = cur_val;
+}
+
+
+
 ////////////////////////////////// Public //////////////////////////////////////
 /**
  * @brief       ISR call-back registration
@@ -505,198 +515,168 @@ int32_t csi_gpio_pin_func_config(gpio_pin_name gpio_pin, gpio_mode_e pin_mode)
 } 
 
 /**
-  @brief       Individual pin config, including all characteristics.
+  @brief       Individual pin pull-up/down config
   @param[in]   gpio_pin    pin name.
-  @param[in]   pin_mode    pin mode.
-  @param[in]   pin_pd      pin pull-up/down config
-  @param[in]   pin_omcr    pin slew-rate and drive strength
-  @param[in]   pin_odm     pin open-drain or push-pull
+  @param[in]   pin_mode    pull-up/down mode to be set.
   @return      error code
 */
-int32_t csi_gpio_pin_func_config(gpio_pin_name gpio_pin, gpio_mode_e pin_mode, gpio_pull_e pdmode, gpio_char_e omcr)
+int32_t csi_gpio_pin_pull_config(gpio_pin_name gpio_pin, gpio_pull_e pin_mode)
 {
+    uint32_t port_idx = (gpio_pin>>4);
+    uint32_t pin_idx = (gpio_pin & 0xful);
+    uint32_t cur_pudr = 0;
 
-    if (gpio_pin < 0 || gpio_pin >= CONFIG_GPIO_PIN_NUM) {
-        return NULL;
-    }
-    uint32_t i;
-    for (i = 0; i < CONFIG_GPIO_NUM; i++) {
-        csi_gpio_port_initialize(i);
-    }
-    /* obtain the gpio pin information */
-    uint32_t port_idx;
-    uint32_t pin_idx = target_gpio_pin_init(gpio_pin, &port_idx);
-
-    uint32_t idx = pin_idx;
-
-    for (i = 0; i < port_idx; i++) {
-        idx += (gpio_handle[i].pin_num);
-    }
-
-    dw_gpio_pin_priv_t *gpio_pin_priv = &(gpio_pin_handle[idx]);
-    gpio_pin_priv->portidx = port_idx;
-
-
-    gpio_pin_priv->idx = pin_idx;
-    gpio_pin_priv->cb = cb_event;
-
-    return (gpio_pin_handle_t)gpio_pin_priv;
-}
-
-
-/**
-  \brief       config pin mode
-  \param[in]   pin       gpio pin handle to operate.
-  \param[in]   mode      \ref gpio_mode_e
-  \return      error code
-*/
-int32_t csi_gpio_pin_config_mode(gpio_pin_handle_t handle,
-                            gpio_mode_e mode)
-{
-    return ERR_GPIO(DRV_ERROR_UNSUPPORTED);
-}
-/**
-  \brief       config pin direction
-  \param[in]   pin       gpio pin handle to operate.
-  \param[in]   dir       \ref gpio_direction_e
-  \return      error code
-*/
-int32_t csi_gpio_pin_config_direction(gpio_pin_handle_t handle,
-                            gpio_direction_e dir)
-{
-    GPIO_NULL_PARAM_CHK(handle);
-
-    /* config the gpio pin mode direction mask bits */
-    dw_gpio_pin_priv_t *gpio_pin_priv = handle;
-
-    /* convert portidx to port handle */
-    dw_gpio_priv_t * gpio_priv = &gpio_handle[gpio_pin_priv->portidx];
-
-    gpio_priv->dir = dir;
-    gpio_priv->mask = 1 << gpio_pin_priv->idx;
-
-    uint32_t ret = gpio_set_direction(gpio_priv, dir);
-    if(ret) {
-        return ret;
+    switch (port_idx) {
+        case 1: // PORTA0
+            gpio_pin_char_set(&H_GPIOA0->PUDR, pin_idx, (uint32_t)pin_mode);
+            break;
+        case 2: // PORTA1
+            gpio_pin_char_set(&H_GPIOA1->PUDR, pin_idx, (uint32_t)pin_mode);
+            break;
+        case 3: // PORTB0
+            gpio_pin_char_set(&H_GPIOB0->PUDR, pin_idx, (uint32_t)pin_mode);
+            break;
+        case 4: // PORTC0
+            gpio_pin_char_set(&H_GPIOC0->PUDR, pin_idx, (uint32_t)pin_mode);
+            break;
+        case 5: // PORTD0
+            gpio_pin_char_set(&H_GPIOD0->PUDR, pin_idx, (uint32_t)pin_mode);
+            break;
     }
 
     return 0;
-}
+} 
 
 /**
-  \brief       config pin
-  \param[in]   handle       gpio pin handle to operate.
-  \param[in]   mode      \ref gpio_mode_e
-  \param[in]   dir       \ref gpio_direction_e
-  \return      error code
+  @brief       Individual pin slew-rate & drive strength config
+  @param[in]   gpio_pin    pin name.
+  @param[in]   pin_mode    IO character to be set.
+  @return      error code
 */
-int32_t csi_gpio_pin_config(gpio_pin_handle_t handle,
-                            gpio_mode_e mode,
-                            gpio_direction_e dir)
+int32_t csi_gpio_pin_speed_config(gpio_pin_name gpio_pin, gpio_char_e pin_mode)
 {
-    GPIO_NULL_PARAM_CHK(handle);
+    uint32_t port_idx = (gpio_pin>>4);
+    uint32_t pin_idx = (gpio_pin & 0xful);
 
-    /* config the gpio pin mode direction mask bits */
-    dw_gpio_pin_priv_t *gpio_pin_priv = handle;
-
-    /* convert portidx to port handle */
-    dw_gpio_priv_t * gpio_priv = &gpio_handle[gpio_pin_priv->portidx];
-
-    gpio_priv->mode = mode;
-    gpio_priv->dir = dir;
-    gpio_priv->mask = 1 << gpio_pin_priv->idx;
-
-    uint32_t ret = gpio_set_direction(gpio_priv, dir);
-    if(ret) {
-        return ret;
+    switch (port_idx) {
+        case 1: // PORTA0
+            gpio_pin_char_set(&H_GPIOA0->DSCR, pin_idx, (uint32_t)pin_mode);
+            break;
+        case 2: // PORTA1
+            gpio_pin_char_set(&H_GPIOA1->DSCR, pin_idx, (uint32_t)pin_mode);
+            break;
+        case 3: // PORTB0
+            gpio_pin_char_set(&H_GPIOB0->DSCR, pin_idx, (uint32_t)pin_mode);
+            break;
+        case 4: // PORTC0
+            gpio_pin_char_set(&H_GPIOC0->DSCR, pin_idx, (uint32_t)pin_mode);
+            break;
+        case 5: // PORTD0
+            gpio_pin_char_set(&H_GPIOD0->DSCR, pin_idx, (uint32_t)pin_mode);
+            break;
     }
 
     return 0;
+} 
 
-}
 
 /**
-  \brief       Set one or zero to the selected GPIO pin.
-  \param[in]   handle       gpio pin handle to operate.
-  \param[in]   value     the value to be set
-  \return      error code
+  @brief       Individual pin open-drain config
+  @param[in]   gpio_pin    pin name.
+  @param[in]   pin_mode    IO character to be set.
+  @return      error code
 */
-int32_t csi_gpio_pin_write(gpio_pin_handle_t handle, bool value)
+int32_t csi_gpio_pin_opendrain_config(gpio_pin_name gpio_pin, gpio_char_e pin_mode)
 {
-    GPIO_NULL_PARAM_CHK(handle);
-    if ((int32_t)value < 0) {
-        return ERR_GPIO(DRV_ERROR_PARAMETER);
+    uint32_t port_idx = (gpio_pin>>4);
+    uint32_t pin_idx = (gpio_pin & 0xful);
+
+    switch (port_idx) {
+        case 1: // PORTA0
+            gpio_pin_char_set(&H_GPIOA0->OMCR, pin_idx, (uint32_t)pin_mode);
+            break;
+        case 2: // PORTA1
+            gpio_pin_char_set(&H_GPIOA1->OMCR, pin_idx, (uint32_t)pin_mode);
+            break;
+        case 3: // PORTB0
+            gpio_pin_char_set(&H_GPIOB0->OMCR, pin_idx, (uint32_t)pin_mode);
+            break;
+        case 4: // PORTC0
+            gpio_pin_char_set(&H_GPIOC0->OMCR, pin_idx, (uint32_t)pin_mode);
+            break;
+        case 5: // PORTD0
+            gpio_pin_char_set(&H_GPIOD0->OMCR, pin_idx, (uint32_t)pin_mode);
+            break;
     }
-
-    dw_gpio_pin_priv_t *gpio_pin_priv = handle;
-
-    /* convert portidx to port handle */
-    dw_gpio_priv_t * port_handle = &gpio_handle[gpio_pin_priv->portidx];
-
-    uint8_t offset = gpio_pin_priv->idx;
-    uint32_t port_value = value << offset;
-
-    port_handle->value = port_value;
-    gpio_write(port_handle, (1 << offset));
 
     return 0;
+} 
 
+/**
+  @brief       Set value high to the pin
+  @param[in]   handle    gpio port handle to operate.
+  @param[in]   pin_num   pin number in port
+  @return      none
+*/
+__ALWAYS_INLINE void csi_gpio_pin_set(gpio_handle_t handle, uint32_t pin_num)
+{
+    handle->SODR = (1ul<<pin_num);
 }
 
 /**
-  \brief       Get the value of  selected GPIO pin.
-  \param[in]   handle       gpio pin handle to operate.
-  \param[out]  value     buf to store the pin value
-  \return      error code
+  @brief       Clear value of the pin
+  @param[in]   handle    gpio port handle to operate.
+  @param[in]   pin_num   pin number in port
+  @return      none
 */
-int32_t csi_gpio_pin_read(gpio_pin_handle_t handle, bool *value)
+__ALWAYS_INLINE void csi_gpio_pin_clear(gpio_handle_t handle, uint32_t pin_num)
 {
-    GPIO_NULL_PARAM_CHK(handle);
-    if (value <= 0) {
-        return ERR_GPIO(DRV_ERROR_PARAMETER);
-    }
-
-    dw_gpio_pin_priv_t *gpio_pin_priv = handle;
-    uint32_t port_value;
-    uint8_t offset = gpio_pin_priv->idx;
-
-    /* convert portidx to port handle */
-    dw_gpio_priv_t * port_handle = &gpio_handle[gpio_pin_priv->portidx];
-
-    gpio_read(port_handle, &port_value);
-    *value = (port_value & (1 << offset)) >> offset;
-
-    return 0;
+    handle->CODR = (1ul<<pin_num);
 }
 
 /**
-  \brief       set GPIO interrupt mode.
-  \param[in]   handle       gpio pin handle to operate.
-  \param[in]   mode      the irq mode to be set
-  \param[in]   enable    the enable flag
-  \return      error code
+  @brief       Config pin external interrupt
+  @param[in]   handle    gpio port handle to operate.
+  @param[in]   pin_num   pin number in port
+  @return      none
 */
-int32_t csi_gpio_pin_set_irq(gpio_pin_handle_t handle, gpio_irq_mode_e mode, bool enable)
+void csi_gpio_pin_exi_set(gpio_pin_name gpio_pin, bool enable)
 {
-    GPIO_NULL_PARAM_CHK(handle);
+    uint32_t port_idx = (gpio_pin>>4);
+    uint32_t pin_idx  = (gpio_pin & 0xful);
 
-    uint32_t ret = 0;
-
-    ret = gpio_set_irq_mode(handle, mode);
-
-    if (ret) {
-        return ret;
+    if (enable == true) {
+        if (pin_idx < 8) {
+            H_EXIGRP->IGRPL = ((H_EXIGRP->IGRPL) & ~(0xful<<(4*pin_idx))) | ((port_idx-1)<<(4*pin_idx)) ;
+        } else {
+            H_EXIGRP->IGRPH = ((H_EXIGRP->IGRPL) & ~(0xful<<(4*pin_idx))) | ((port_idx-1)<<(4*pin_idx)) ;
+        }
     }
 
-    if (enable) {
-        gpio_irq_enable(handle);
-
-    } else {
-        gpio_irq_disable(handle);
-
+    switch (port_idx) {
+    case 1: // PORTA0
+        H_GPIOA0->IEER = enable<<pin_idx;
+        H_GPIOA0->IEDR = (~enable)<<pin_idx;
+        break;
+    case 2: // PORTA1
+        H_GPIOA1->IEER = enable<<pin_idx;
+        H_GPIOA1->IEDR = (~enable)<<pin_idx;
+        break;
+    case 3: // PORTB0
+        H_GPIOB0->IEER = enable<<pin_idx;
+        H_GPIOB0->IEDR = (~enable)<<pin_idx;
+        break;
+    case 4: // PORTC0
+        H_GPIOC0->IEER = enable<<pin_idx;
+        H_GPIOC0->IEDR = (~enable)<<pin_idx;
+        break;
+    case 5: // PORTD0
+        H_GPIOD0->IEER = enable<<pin_idx;
+        H_GPIOD0->IEDR = (~enable)<<pin_idx;
+        break;
     }
-
-    return ret;
 
 }
+
+
 
