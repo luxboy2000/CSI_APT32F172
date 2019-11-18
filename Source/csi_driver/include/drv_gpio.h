@@ -162,74 +162,110 @@ typedef enum {
 
 typedef void (*gpio_event_cb_t)(gpio_event_e event);   ///< gpio Event call back.
 
+////////////////////////////////// Public //////////////////////////////////////
 /**
-  \brief       Initialize GPIO handle.
-  \param[in]   gpio_pin    gpio pin idx.
-  \param[in]   cb_event  event callback function \ref gpio_event_cb_t
-  \return      gpio_pin_handle
+ * @brief       ISR call-back registration
+ * @param[i]    cb:     pointer to customer ISR when EXI is called 
+ * @param[i]    idx:    exi isr number to be initialized
+ * @return      zero on success
 */
-gpio_pin_handle_t csi_gpio_pin_initialize(int32_t gpio_pin, gpio_event_cb_t cb_event);
+int32_t csi_gpio_exi_cb_init (gpio_event_cb_t cb);
 
 /**
-  \brief       De-initialize GPIO pin handle.stops operation and releases the software resources used by the handle.
-  \param[in]   handle    gpio pin handle to operate.
-  \return      error code
+  @brief       config multiple pin within one port
+  @param[in]   handle    gpio port handle to operate. ()
+  @return      error code
 */
-int32_t csi_gpio_pin_uninitialize(gpio_pin_handle_t handle);
+int32_t csi_gpio_port_config(gpio_handle_t handle, gpio_conr_type conr_val, uint32_t pullst);
 
 /**
-  \brief       config pin mode
-  \param[in]   pin       gpio pin handle to operate.
-  \param[in]   mode      \ref gpio_mode_e
-  \return      error code
+  @brief       Write value to the port (multi-bits)
+  @param[in]   handle    gpio port handle to operate.
+  @param[in]   value     the value to be set
+  @return      none
 */
-int32_t csi_gpio_pin_config_mode(gpio_pin_handle_t handle,
-                            gpio_mode_e mode);
+__ALWAYS_INLINE void csi_gpio_port_write(gpio_handle_t handle, uint32_t value);
 
 /**
-  \brief       config pin direction
-  \param[in]   pin       gpio pin handle to operate.
-  \param[in]   dir       \ref gpio_direction_e
-  \return      error code
+  @brief       Set value high to the port (multi-bits)
+  @param[in]   handle    gpio port handle to operate.
+  @param[in]   mask      the pin to be set (0-ignored)
+  @return      none
 */
-int32_t csi_gpio_pin_config_direction(gpio_pin_handle_t handle,
-                            gpio_direction_e dir);
+__ALWAYS_INLINE void csi_gpio_port_set(gpio_handle_t handle, uint32_t mask);
 
 /**
-  \brief       config pin
-  \param[in]   pin       gpio pin handle to operate.
-  \param[in]   mode      \ref gpio_mode_e
-  \param[in]   dir       \ref gpio_direction_e
-  \return      error code
+  @brief       Set value high to the port (multi-bits)
+  @param[in]   handle    gpio port handle to operate.
+  @param[in]   mask      the pin to be set (0-ignored)
+  @return      none
 */
-int32_t csi_gpio_pin_config(gpio_pin_handle_t handle,
-                                    gpio_mode_e mode,
-                            gpio_direction_e dir);
+__ALWAYS_INLINE void csi_gpio_port_set(gpio_handle_t handle, uint32_t mask);
 
 /**
-  \brief       Set one or zero to the selected GPIO pin.
-  \param[in]   pin       gpio pin handle to operate.
-  \param[in]   value     value to be set
-  \return      error code
+  @brief       Clear value of the port (multi-bits)
+  @param[in]   handle    gpio port handle to operate.
+  @param[in]   mask      the pin to be clear (0-ignored)
+  @return      none
 */
-int32_t csi_gpio_pin_write(gpio_pin_handle_t handle, bool value);
+__ALWAYS_INLINE void csi_gpio_port_clear(gpio_handle_t handle, uint32_t mask);
 
 /**
-  \brief       Get the value of  selected GPIO pin.
-  \param[in]   pin       gpio pin handle to operate.
-  \param[out]  value     buffer to store the pin value
-  \return      error code
+  @brief       Individual pin function config
+  @param[in]   gpio_pin    pin name.
+  @param[in]   pin_mode    pin mode.
+  @return      error code
 */
-int32_t csi_gpio_pin_read(gpio_pin_handle_t handle, bool *value);
+int32_t csi_gpio_pin_func_config(gpio_pin_name gpio_pin, gpio_mode_e pin_mode);
 
 /**
-  \brief       set GPIO interrupt mode.
-  \param[in]   pin       gpio pin handle to operate.
-  \param[in]   mode      irq mode to be set
-  \param[in]   enable    enable flag
-  \return      error code
+  @brief       Individual pin pull-up/down config
+  @param[in]   gpio_pin    pin name.
+  @param[in]   pin_mode    pull-up/down mode to be set.
+  @return      error code
 */
-int32_t csi_gpio_pin_set_irq(gpio_pin_handle_t handle, gpio_irq_mode_e mode, bool enable);
+void csi_gpio_pin_pull_config(gpio_pin_name gpio_pin, gpio_pull_e pin_mode);
+
+/**
+  @brief       Individual pin slew-rate & drive strength config
+  @param[in]   gpio_pin    pin name.
+  @param[in]   pin_mode    IO character to be set.
+  @return      error code
+*/
+void csi_gpio_pin_speed_config(gpio_pin_name gpio_pin, gpio_char_e pin_mode);
+
+/**
+  @brief       Individual pin open-drain config
+  @param[in]   gpio_pin    pin name.
+  @param[in]   pin_mode    IO character to be set.
+  @return      error code
+*/
+void csi_gpio_pin_outputmode_config(gpio_pin_name gpio_pin, gpio_output_mode_e pin_mode);
+
+/**
+  @brief       Set value high to the pin
+  @param[in]   handle    gpio port handle to operate.
+  @param[in]   pin_num   pin number in port
+  @return      none
+*/
+__ALWAYS_INLINE void csi_gpio_pin_set(gpio_handle_t handle, uint32_t pin_num);
+
+/**
+  @brief       Clear value of the pin
+  @param[in]   handle    gpio port handle to operate.
+  @param[in]   pin_num   pin number in port
+  @return      none
+*/
+__ALWAYS_INLINE void csi_gpio_pin_clear(gpio_handle_t handle, uint32_t pin_num);
+
+/**
+  @brief       Config pin external interrupt
+  @param[in]   handle    gpio port handle to operate.
+  @param[in]   pin_num   pin number in port
+  @return      none
+*/
+void csi_gpio_pin_exi_set(gpio_pin_name gpio_pin, bool enable);
+
 
 
 #ifdef __cplusplus

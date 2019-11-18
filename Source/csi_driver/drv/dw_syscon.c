@@ -17,21 +17,26 @@
 
 #include <csi_config.h>
 #include "soc.h"
+#include "apt_syscon.h"
 #include "csi_core.h"
 #include "lib.h"
 
+#define ERR_SYSCON(errno) (CSI_DRV_ERRNO_SYSCON_BASE | errno)
+#define SYSCON_NULL_PARAM_CHK(para)                         \
+        do {                                        \
+            if (para == NULL) {                     \
+                return ERR_SYSCON(DRV_ERROR_PARAMETER);   \
+            }                                       \
+        } while (0)
 
+syscon_handle_t H_SYSCON  = (APT_SYSCON_Reg_t   *)APT_SYSCON_BASE;
 
-typedef struct {
-    uint32_t pending_bit_num;
-    void (*isr_ptr)(void);
-} syscon_isr_table_t;
-
-extern syscon_isr_table_t syscon_isr_table[];
 
 static bool emosc_intialized_flag;
 
-uint32_t _cur_sysclk, _cur_hclk_freq, _cur_pclk_freq;
+uint32_t _cur_hclk_freq = 10000000;
+uint32_t _cur_pclk_freq = 2500000;
+syscon_sysclk_e _cur_sysclk = IMOSC_20M;
 
 ///**
 //  \brief       Dispatch isr according to pending bit
@@ -136,23 +141,21 @@ uint32_t _cur_sysclk, _cur_hclk_freq, _cur_pclk_freq;
 
 /**
   \brief       config usart parity.
-  \param[in]   handle  usart handle to operate.
   \param[in]   lf_sel: low freq external osc selected(false in default)
   \param[in]   osc_stabletime: stable counter value (0x7 in default)
   \param[in]   osc_gain: gain control of external osc(0xf in default)
   \return      error code
 */
-void dw_syscon_emosc_config(syscon_handle_t handle, bool lf_sel, uint32_t osc_stabletime, uint32_t osc_gain)
+void csi_syscon_emosc_config(syscon_emosc_lf_e lf_sel, uint32_t osc_stabletime, uint32_t osc_gain)
 {
     switch (lf_sel) {
-        case false: /* high freq emosc */
-            handle->OSTR  = osc_stabletime;
-            handle->PWRCR = ((handle->PWRCR) & ~(0xful<<8)) | (osc_gain<<8) | PWRCR_KEY;
+        case EMOSC_LF_OPTION: /* low freq emosc */
+            H_SYSCON->OSTR  = osc_stabletime;
+            H_SYSCON->PWRCR = ((H_SYSCON->PWRCR) & ~(0xful<<8)) | ((osc_gain & 7ul)<<8) | PWRCR_KEY;
             break;
-        case true: /* low freq emosc */
-            handle->OSTR  = osc_stabletime;
-            handle->PWRCR = ((handle->PWRCR) & ~(0xful<<8)) | ((osc_gain & 7ul)<<8) | PWRCR_KEY;
-            break;
+        default: // normal 
+            H_SYSCON->OSTR  = osc_stabletime;
+            H_SYSCON->PWRCR = ((H_SYSCON->PWRCR) & ~(0xful<<8)) | (osc_gain<<8) | PWRCR_KEY;
     }
 
     emosc_intialized_flag = true;
@@ -160,32 +163,33 @@ void dw_syscon_emosc_config(syscon_handle_t handle, bool lf_sel, uint32_t osc_st
 
 /**
   \brief       config usart parity.
-  \param[in]   handle  usart handle to operate.
-  \param[in]   parity    \ref usart_parity_e
+  \param[in]   clock_source: clock source to be enable or disabled
+  \param[in]   status: enable or disable
   \return      error code
 */
-int32_t dw_syscon_set_clocksource_switch(syscon_handle_t handle, uint32_t target_clock, bool status)
+int32_t csi_syscon_set_clocksource_switch(syscon_oscsrc_e clock_source, syscon_endis_e status)
 {
+    volatile uint32_t i;
     uint32_t cur_clkstatus;
 
-    if ((target_clock == ENDIS_EMOSC) && !emosc_intialized_flag) {
-        return -1;
+    if ((clock_source == EMOSC) && !emosc_intialized_flag) {
+        return ERR_SYSCON(DRV_ERROR_OSCSET_EMOSCUNSTABLE);
     }
 
-    cur_clkstatus = handle->GCSR;
-    if (status == APT_DEF_ENABLE) {
-        handle->GCER = target_clock;
-        cur_clkstatus |= target_clock;
+    cur_clkstatus = H_SYSCON->GCSR;
+    if (status == ENABLE) {
+        H_SYSCON->GCER = clock_source;
+        cur_clkstatus |= clock_source;
     }
     else {
-        handle->GCDR = target_clock;
-        cur_clkstatus &= ~target_clock;
+        H_SYSCON->GCDR = clock_source;
+        cur_clkstatus &= ~clock_source;
     }
 
-    mdelay (100);
+    for (i=0;i<100;i++);
 
-    if (handle->GCSR != cur_clkstatus) {
-        return -1;
+    if (H_SYSCON->GCSR != cur_clkstatus) {
+        ERR_SYSCON(DRV_ERROR_OSCSET_CHECKFAIL);
     }
     else {
         return 0;
@@ -194,34 +198,51 @@ int32_t dw_syscon_set_clocksource_switch(syscon_handle_t handle, uint32_t target
 
 
 /**
-  \brief       config usart parity.
-  \param[in]   handle  usart handle to operate.
-  \param[in]   parity    \ref usart_parity_e
+  \brief       config system clock
+  \param[in]   sysclk_setup: system clock option
+  \param[in]   hclk_freq: value of target hclk frequence
+  \param[in]   pclk_freq: value of target hclk frequence
   \return      error code
 */
-int32_t dw_syscon_systemclock_config(syscon_handle_t handle, sysclk_src_t target_sysclk, uint32_t hclk_freq, uint32_t pclk_freq)
+int32_t csi_syscon_systemclock_config(syscon_sysclk_e sysclk_setup, uint32_t hclk_freq, uint32_t pclk_freq)
 {
     volatile uint32_t i;
     uint32_t target_sysclk_freq = 0;
     uint32_t target_hclk_freq, hclk_div;
     uint32_t target_pclk_freq, pclk_div;
 
+    // parameter check
     if (hclk_freq < pclk_freq) {
-        return -1;  // Error config
+        return ERR_SYSCON(DRV_ERROR_SYSFREQ_CFGERR0);
     }
 
-    switch (target_sysclk) {
-        case SYSCLK_IMOSC_40M:
-            target_sysclk_freq = 40000000;
+    switch (sysclk_setup) {
+        case IMOSC_40M:
+            if ( hclk_freq <= 40000000 ) {
+                target_sysclk_freq = 40000000;
+            } else {
+                return ERR_SYSCON(DRV_ERROR_SYSFREQ_CFGERR1);
+            }
 			break;
-        case SYSCLK_IMOSC_20M:
-            target_sysclk_freq = 20000000;
+        case IMOSC_20M:
+            if ( hclk_freq <= 20000000 ) {
+                target_sysclk_freq = 20000000;
+            } else {
+                return ERR_SYSCON(DRV_ERROR_SYSFREQ_CFGERR2);
+            }
+        case EMOSC:
+            if ( (hclk_freq <= EMOSC_FREQ) && (EMOSC_FREQ <= 24000000) ) {
+                target_sysclk_freq = EMOSC_FREQ;
+            } else {
+                return ERR_SYSCON(DRV_ERROR_SYSFREQ_CFGERR3);
+            }
             break;
-        case SYSCLK_EMOSC:
-            target_sysclk_freq = EMOSC_FREQ;
-            break;
-        case SYSCLK_ISOSC:
-            target_sysclk_freq = 3000000;
+        case ISOSC:
+            if ( (hclk_freq <= 3000000) ) {
+                target_sysclk_freq = 3000000;
+            } else {
+                return ERR_SYSCON(DRV_ERROR_SYSFREQ_CFGERR4);
+            }
             break;
     }
 	target_hclk_freq = hclk_freq;
@@ -231,64 +252,70 @@ int32_t dw_syscon_systemclock_config(syscon_handle_t handle, sysclk_src_t target
     pclk_div = hclk_freq/pclk_freq;
     target_pclk_freq = target_hclk_freq/pclk_div;
 
-    if ((_cur_sysclk == SYSCLK_IMOSC_20M) && (target_sysclk == SYSCLK_IMOSC_40M)) {
-        handle->GCER = 1; // enable ISOSC
-        handle->ERRINF = 0;
+    // switch system clock as IMO40M
+    if ((_cur_sysclk == IMOSC_20M) && (sysclk_setup == IMOSC_40M)) {
+        H_SYSCON->GCER = 1; // enable ISOSC
+        H_SYSCON->ERRINF = 0;
         for (i=0;i<100;i++);
-        handle->SCLKCR = (4 | SCLKCR_KEY); // switch to ISOSC as sysclk
+        H_SYSCON->SCLKCR = (4 | SCLKCR_KEY); // switch to ISOSC as sysclk
         for (i=0;i<10;i++);
-        if ((handle->ERRINF) & (1ul<<4)) {
-            return -2;
+        if ((H_SYSCON->ERRINF) & (1ul<<4)) {
+            return ERR_SYSCON(DRV_ERROR_SYSCLK_SWFAIL0);
         }
-        handle->GCDR = 2; // disable IMOSC
-        handle->CLCR |= (1ul<<22);
-        handle->GCER = 2; // enable IMOSC
+        H_SYSCON->GCDR = 2; // disable IMOSC
+        H_SYSCON->CLCR |= (1ul<<22);
+        H_SYSCON->GCER = 2; // enable IMOSC
         for (i=0;i<100;i++);
-        handle->SCLKCR = ((hclk_div<<8)|SCLKCR_KEY);
+        H_SYSCON->SCLKCR = ((hclk_div<<8)|SCLKCR_KEY);
         for (i=0;i<10;i++);
-        if ((handle->ERRINF) & (1ul<<4)) {
-            return -2;
+        if ((H_SYSCON->ERRINF) & (1ul<<4)) {
+            return ERR_SYSCON(DRV_ERROR_SYSCLK_SWFAIL1);
         }
     }
-    else if ((_cur_sysclk == SYSCLK_IMOSC_40M) && (target_sysclk == SYSCLK_IMOSC_20M)) {
-        handle->GCER = 1; // enable ISOSC
-        handle->ERRINF = 0;
+    // switch system clock as IMO20M
+    else if ((_cur_sysclk == IMOSC_40M) && (sysclk_setup == IMOSC_20M)) {
+        H_SYSCON->GCER = 1; // enable ISOSC
+        H_SYSCON->ERRINF = 0;
         for (i=0;i<100;i++);
-        handle->SCLKCR = (4 | SCLKCR_KEY); // switch to ISOSC as sysclk
+        H_SYSCON->SCLKCR = (4 | SCLKCR_KEY); // switch to ISOSC as sysclk
         for (i=0;i<10;i++);
-        if ((handle->ERRINF) & (1ul<<4)) {
-            return -2;
+        if ((H_SYSCON->ERRINF) & (1ul<<4)) {
+            return ERR_SYSCON(DRV_ERROR_SYSCLK_SWFAIL2);
         }
-        handle->GCDR = 2; // disable IMOSC
-        handle->CLCR &= ~(1ul<<22);
-        handle->GCER = 2; // enable IMOSC
+        H_SYSCON->GCDR = 2; // disable IMOSC
+        H_SYSCON->CLCR &= ~(1ul<<22);
+        H_SYSCON->GCER = 2; // enable IMOSC
         for (i=0;i<100;i++);
-        handle->SCLKCR = ((hclk_div<<8)|SCLKCR_KEY);
+        H_SYSCON->SCLKCR = ((hclk_div<<8)|SCLKCR_KEY);
         for (i=0;i<10;i++);
-        if ((handle->ERRINF) & (1ul<<4)) {
-            return -2;
+        if ((H_SYSCON->ERRINF) & (1ul<<4)) {
+            return ERR_SYSCON(DRV_ERROR_SYSCLK_SWFAIL3);
         }
-    } else if (target_sysclk == SYSCLK_EMOSC) {
-        handle->ERRINF = 0;
-        handle->SCLKCR = (1 | (hclk_div<<8) | SCLKCR_KEY); // switch to EMOSC as sysclk
+    // switch system clock as EMO
+    } else if ((_cur_sysclk != EMOSC) && (sysclk_setup == EMOSC)) {
+        H_SYSCON->ERRINF = 0;
+        H_SYSCON->SCLKCR = (1 | (hclk_div<<8) | SCLKCR_KEY); // switch to EMOSC as sysclk
         for (i=0;i<10;i++);
-        if ((handle->ERRINF) & (1ul<<4)) {
-            return -2;
+        if ((H_SYSCON->ERRINF) & (1ul<<4)) {
+            return ERR_SYSCON(DRV_ERROR_SYSCLK_SWFAIL4);
         }
-    } else if (target_sysclk == SYSCLK_ISOSC) {
-        handle->ERRINF = 0;
-        handle->SCLKCR = (4 | (hclk_div<<8) | SCLKCR_KEY); // switch to ISOSC as sysclk
+    // switch system clock as ISO3M
+    } else if ((_cur_sysclk != ISOSC_3M) && (sysclk_setup == ISOSC_3M)) {
+        H_SYSCON->ERRINF = 0;
+        H_SYSCON->SCLKCR = (4 | (hclk_div<<8) | SCLKCR_KEY); // switch to ISOSC as sysclk
         for (i=0;i<10;i++);
-        if ((handle->ERRINF) & (1ul<<4)) {
-            return -2;
+        if ((H_SYSCON->ERRINF) & (1ul<<4)) {
+            return ERR_SYSCON(DRV_ERROR_SYSCLK_SWFAIL5);
         }
+    } else { // only change div option
+        H_SYSCON->SCLKCR = ((H_SYSCON->SCLKCR)&0xff) |  (hclk_div<<8) | SCLKCR_KEY;
     }
 
     /* Setup PCLK divider */
-    handle->PCLKCR = ((pclk_div<<8)|PCLKCR_KEY);
+    H_SYSCON->PCLKCR = ((pclk_div<<8)|PCLKCR_KEY);
 
     /* Store config to global variables */
-    _cur_sysclk = target_sysclk; 
+    _cur_sysclk = sysclk_setup; 
     _cur_hclk_freq = target_hclk_freq;
     _cur_pclk_freq = target_pclk_freq;
 
@@ -304,20 +331,20 @@ int32_t dw_syscon_systemclock_config(syscon_handle_t handle, sysclk_src_t target
   \param[in]   pclk1_sel individual pclk target on PCLK1
   \return      negtive when assignment is not in right pclk domain
 */
-int32_t dw_syscon_set_individual_pclk_switch(syscon_handle_t handle, bool status, uint32_t pclk0_sel, uint32_t pclk1_sel)
+int32_t csi_syscon_set_individual_pclk_switch(syscon_endis_e status, uint32_t pclk0_sel, uint32_t pclk1_sel)
 {
     if ((pclk0_sel & (1ul<<31))||!(pclk1_sel & (1ul<<31))) {    // wrong setup of pclk domain assignment
         return -1;
     }
     else {
         switch (status) {
-            case true:  /*enable*/
-                handle->PCER0 = pclk0_sel;
-                handle->PCER1 = pclk1_sel;
+            case ENABLE:  /*enable*/
+                H_SYSCON->PCER0 = pclk0_sel;
+                H_SYSCON->PCER1 = pclk1_sel;
                 break;    
-            case false: /*disable*/
-                handle->PCDR0 = pclk0_sel;
-                handle->PCDR1 = pclk1_sel;
+            default: /*disable*/
+                H_SYSCON->PCDR0 = pclk0_sel;
+                H_SYSCON->PCDR1 = pclk1_sel;
                 break;
         }
     }
@@ -327,52 +354,50 @@ int32_t dw_syscon_set_individual_pclk_switch(syscon_handle_t handle, bool status
 
 /**
   \brief       Enable/disable pclk of all peripherals
-  \param[in]   handle   syscon to be operate
   \param[in]   status   en/dis operation (enable is default)
   \return      negtive when assignment is not in right pclk domain
 */
-void dw_syscon_set_all_pclk_switch(syscon_handle_t handle, bool status)
+void csi_syscon_set_all_pclk_switch(syscon_endis_e status)
 {
     switch (status) {
-        case true:  /*enable*/
-            handle->PCER0 = 0xffffffff;
-            handle->PCER1 = 0xffffffff;
+        case ENABLE:  /*enable*/
+            H_SYSCON->PCER0 = 0xffffffff;
+            H_SYSCON->PCER1 = 0xffffffff;
             break;    
-        case false: /*disable*/
-            handle->PCDR0 = 0xffffffff;
-            handle->PCDR1 = 0xffffffff;
+        default: /*disable*/
+            H_SYSCON->PCDR0 = 0xffffffff;
+            H_SYSCON->PCDR1 = 0xffffffff;
             break;
     }
 }
 
 /**
   \brief       Enable/disable emosc clock monitor
-  \param[in]   handle   syscon to be operate
   \param[in]   status   en/dis operation
   \param[in]   rst_on_fail  generate reset when fail or not  (disable is default)
   \return      None
 */
-int32_t dw_syscon_set_clockmonitor_switch(syscon_handle_t handle, bool status, bool rst_on_fail)
+int32_t csi_syscon_set_clockmonitor_switch(syscon_endis_e status, syscon_ckmrst_e rst_on_fail)
 {
-    if (!((handle->GCSR) & 1ul)) {
-        return -1;  // fail to setup clock monitor, due to isosc absence
+    if (!((H_SYSCON->GCSR) & 1ul)) {
+        return ERR_SYSCON(DRV_ERROR_CKM_ISOABS);
     }
 
-    handle->ERRINF = 0;
+    H_SYSCON->ERRINF = 0;
 
-    if ((status == APT_DEF_ENABLE) && (rst_on_fail == APT_DEF_ENABLE)) {
-        handle->GCER = (1ul<<18) | (1ul<<19);
+    if ((status == ENABLE) && (rst_on_fail == CKM_RST_ON)) {
+        H_SYSCON->GCER = (1ul<<18) | (1ul<<19);
     }
-    else if ((status == APT_DEF_ENABLE) && (rst_on_fail == APT_DEF_DISABLE)) {
-        handle->GCER = (1ul<<18) ;
-        handle->GCDR = (1ul<<19) ;
+    else if ((status == ENABLE) && (rst_on_fail == CKM_RST_OFF)) {
+        H_SYSCON->GCER = (1ul<<18) ;
+        H_SYSCON->GCDR = (1ul<<19) ;
     }
     else {
-        handle->GCDR = (1ul<<18) | (1ul<<19) ;
+        H_SYSCON->GCDR = (1ul<<18) | (1ul<<19) ;
     }
 
-    if ((handle->ERRINF) & (1ul<<11)) {
-        return -2;
+    if ((H_SYSCON->ERRINF) & (1ul<<11)) {
+        return ERR_SYSCON(DRV_ERROR_CKM_SETFAIL);
     }
     else {
         return 0;
@@ -381,106 +406,99 @@ int32_t dw_syscon_set_clockmonitor_switch(syscon_handle_t handle, bool status, b
 
 /**
   \brief       Enable/disable pclk under sleep mode
-  \param[in]   handle   syscon to be operate
   \param[in]   status   en/dis operation (enable is default)
   \return      None
 */
-void dw_syscon_pclk_active_under_sleep(syscon_handle_t handle, bool status)
+void csi_syscon_pclk_active_under_sleep(syscon_endis_e status)
 {
     if (status == APT_DEF_ENABLE) {
-        handle->GCER = (1ul<<8);
+        H_SYSCON->GCER = (1ul<<8);
     } 
     else {
-        handle->GCDR = (1ul<<8);
+        H_SYSCON->GCDR = (1ul<<8);
     }
 }
 
 /**
   \brief       Enable/disable iWDT
-  \param[in]   handle   syscon to be operate
   \param[in]   status   en/dis operation(disable is default)
   \return      None
 */
-void dw_syscon_set_iwdt_switch(syscon_handle_t handle, bool status)
+void csi_syscon_set_iwdt_switch(syscon_endis_e status)
 {
     if (status == APT_DEF_ENABLE) {
-        handle->IWDEDR = IWDEDR_KEY ;
+        H_SYSCON->IWDEDR = IWDEDR_KEY ;
     } 
     else {
-        handle->IWDEDR = IWDEDR_KEY | 0x5555;
+        H_SYSCON->IWDEDR = IWDEDR_KEY | 0x5555;
     }
 }
 
 /**
   \brief       Reload iwdt
-  \param[in]   handle   syscon to be operate
   \return      None
 */
-void dw_syscon_iwdt_reload(syscon_handle_t handle)
+void csi_syscon_iwdt_reload(void)
 {
     volatile uint32_t i;
-    handle->IWDCNT = (0x5Aul<<24);
+    H_SYSCON->IWDCNT = (0x5Aul<<24);
     for (i=0;i<100;i++);
-    while ((handle->IWDCNT) & (1ul<<31));
+    while ((H_SYSCON->IWDCNT) & (1ul<<31));
 }
 
 /**
   \brief       config iWDT overtime and alarm time
-  \param[in]   handle   syscon to be operate
   \param[in]   iwdt_ovt overflow time config
   \param[in]   iwdt_wnd alarm window time config
   \return      None
 */
-void dw_syscon_iwdt_config(syscon_handle_t handle, iwdt_ovt_t iwdt_ovt, iwdt_wnd_t iwdt_wnd)
+void csi_syscon_iwdt_config(iwdt_ovt_e iwdt_ovt, iwdt_wnd_e iwdt_wnd)
 {
-    handle->IWDCR = (iwdt_ovt << 8) | (iwdt_wnd << 2) | (0x8778ul << 16);
+    H_SYSCON->IWDCR = (iwdt_ovt << 8) | (iwdt_wnd << 2) | (0x8778ul << 16);
 }
 
 /**
   \brief       config LVD level
-  \param[in]   handle   syscon to be operate
   \param[in]   lvd_intlvl interrupt level selection
   \param[in]   lvd_rstlvl reset level selection (LVD_RSTAT2P15 is default)
   \return      None
 */
-void dw_syscon_lvd_config(syscon_handle_t handle, lvd_intlvl_t lvd_intlvl, lvd_rstlvl_t lvd_rstlvl)
+void csi_syscon_lvd_config(lvd_intlvl_e lvd_intlvl, lvd_rstlvl_e lvd_rstlvl)
 {
     if (lvd_intlvl == LVD_INTDIS) {
-        handle->LVDCR = ((handle->LVDCR) & 0xf) | (0<<11) | (lvd_rstlvl<<12) | LVDCR_KEY;
+        H_SYSCON->LVDCR = ((H_SYSCON->LVDCR) & 0xf) | (0<<11) | (lvd_rstlvl<<12) | LVDCR_KEY;
     }
     else {
-        handle->LVDCR = ((handle->LVDCR) & 0xf) | (1ul<<11) | (lvd_intlvl<<8) | (lvd_rstlvl<<12) | LVDCR_KEY;
+        H_SYSCON->LVDCR = ((H_SYSCON->LVDCR) & 0xf) | (1ul<<11) | (lvd_intlvl<<8) | (lvd_rstlvl<<12) | LVDCR_KEY;
     }
 
 }
 
 /*
   \brief       Enable/disable LVD
-  \param[in]   handle   syscon to be operate
   \param[in]   status   en/dis operation(APT_DEF_ENABLE is default)
   \return      None
 */
-void dw_syscon_set_lvd_switch(syscon_handle_t handle, bool status)
+void csi_syscon_set_lvd_switch(syscon_endis_e status)
 {
-    if (status == APT_DEF_ENABLE) {
-        handle->LVDCR = LVDCR_KEY | ((handle->LVDCR) & ~0xf) ;
+    if (status == ENABLE) {
+        H_SYSCON->LVDCR = LVDCR_KEY | ((H_SYSCON->LVDCR) & ~0xf) ;
     } 
     else {
-        handle->LVDCR = LVDCR_KEY | ((handle->LVDCR) | 0xa);
+        H_SYSCON->LVDCR = LVDCR_KEY | ((H_SYSCON->LVDCR) | 0xa);
     }
 }
 
 /**
   \brief       Get LVD level
-  \param[in]   handle   syscon to be operate
   \param[in]   iwdt_ovt overflow time config
   \param[in]   iwdt_wnd alarm window time config
   \return      None
 */
-bool dw_syscon_get_lvd_status(syscon_handle_t handle)
+bool csi_syscon_get_lvd_status(void)
 {
     bool lvd_flag;
-    if ((handle->LVDCR) & (1ul<<15)) {
+    if ((H_SYSCON->LVDCR) & (1ul<<15)) {
         lvd_flag = true;
     }
     else {
@@ -492,183 +510,172 @@ bool dw_syscon_get_lvd_status(syscon_handle_t handle)
 
 /**
   \brief       EXI trigger level rising edge config
-  \param[in]   handle    syscon to be operate
   \param[in]   exi_sel:  exi line to be set
   \param[in]   status:   enable/disable control(APT_DEF_ENABLE is default)
   \return      current setup of falling edge config
 */
-uint32_t dw_syscon_exi_set_rising(syscon_handle_t handle, uint32_t exi_sel, bool status)
+uint32_t csi_syscon_exi_set_rising(uint32_t exi_sel, syscon_endis_e status)
 {
-    if (status == APT_DEF_ENABLE) { /* select as rising edge*/
-        handle->EXIRT |= exi_sel;
+    if (status == ENABLE) { /* select as rising edge*/
+        H_SYSCON->EXIRT |= exi_sel;
     }
     else
     {
-        handle->EXIRT &= ~exi_sel;
+        H_SYSCON->EXIRT &= ~exi_sel;
     }
 
-    return handle->EXIRT;
+    return H_SYSCON->EXIRT;
 }
 
 /**
   \brief       EXI trigger level rising edge config
-  \param[in]   handle    syscon to be operate
   \param[in]   exi_sel:  exi line to be set
   \param[in]   status:   enable/disable control(APT_DEF_ENABLE is default)
   \return      current setup of falling edge config
 */
-uint32_t dw_syscon_exi_set_falling(syscon_handle_t handle, uint32_t exi_sel, bool status)
+uint32_t dw_syscon_exi_set_falling(uint32_t exi_sel, bool status)
 {
     if (status == APT_DEF_ENABLE) { /* select as falling edge*/
-        handle->EXIFT |= exi_sel;
+        H_SYSCON->EXIFT |= exi_sel;
     }
     else
     {
-        handle->EXIFT &= ~exi_sel;
+        H_SYSCON->EXIFT &= ~exi_sel;
     }
 
-    return handle->EXIFT;
+    return H_SYSCON->EXIFT;
 }
 
 /**
   \brief       EXI enabled/disable control
-  \param[in]   handle:   syscon to be operate
   \param[in]   exi_sel:  exi line to be set
   \param[in]   status:   enable/disable control(APT_DEF_ENABLE is default)
   \return      current masking status
 */
-uint32_t dw_syscon_set_exi_switch(syscon_handle_t handle, uint32_t exi_sel, bool status)
+uint32_t dw_syscon_set_exi_switch(uint32_t exi_sel, bool status)
 {
     if (status == APT_DEF_ENABLE) {
-        handle->EXIER = exi_sel;
+        H_SYSCON->EXIER = exi_sel;
     }
     else {
-        handle->EXIDR = exi_sel;
+        H_SYSCON->EXIDR = exi_sel;
     }
 
-    return handle->EXIMR;
+    return H_SYSCON->EXIMR;
 }
 
 /**
   \brief       Clear EXI pending 
-  \param[in]   handle   syscon to be operate
   \param[in]   iwdt_ovt overflow time config
   \param[in]   iwdt_wnd alarm window time config
   \return      None
 */
-void dw_syscon_clear_exi_pending(syscon_handle_t handle, uint32_t exi_sel)
+void dw_syscon_clear_exi_pending(uint32_t exi_sel)
 {
-    handle->EXICR = exi_sel;
+    H_SYSCON->EXICR = exi_sel;
 }
 
 /**
   \brief       Get interrupt pending bit
-  \param[in]   handle:   syscon to be operate
   \param[in]   exi_sel:  exi pending to be read
   \param[in]   status:   raw(T)/masked(F) pending bit select(APT_DEF_DISABLE is default)
   \return      corresponding bit of pending according to int_sel
 */
-uint32_t dw_syscon_get_exi_status(syscon_handle_t handle, uint32_t exi_sel, bool status)
+uint32_t dw_syscon_get_exi_status(uint32_t exi_sel, bool status)
 {
     if (status == APT_DEF_ENABLE) {
-        return ((handle->EXIRS) & exi_sel);
+        return ((H_SYSCON->EXIRS) & exi_sel);
     }
     else {
-        return ((handle->EXICR) & exi_sel);
+        return ((H_SYSCON->EXICR) & exi_sel);
     }
 }
 
 /**
   \brief       Software trigger EXI
-  \param[in]   handle   syscon to be operate
   \param[in]   exi_sel  exi line to be triggered
   \return      None
 */
-void dw_syscon_software_trigger_exi(syscon_handle_t handle, uint32_t exi_sel)
+void dw_syscon_software_trigger_exi(uint32_t exi_sel)
 {
-    handle->EXIAR = exi_sel;
+    H_SYSCON->EXIAR = exi_sel;
 }
 
 
 /**
   \brief       Reset source information
-  \param[in]   handle   syscon to be operate
   \return      reset_src_t 
 */
-reset_src_t dw_syscon_get_reset_source_status(syscon_handle_t handle)
+reset_src_t dw_syscon_get_reset_source_status(void)
 {
-    return (reset_src_t)(handle->RSR);
+    return (reset_src_t)(H_SYSCON->RSR);
 }
 
 /**
   \brief       Set interrupt enabled/disable control
-  \param[in]   handle:   syscon to be operate
   \param[in]   int_sel:  interrupt to be en/dis
   \param[in]   status:   enable/disable
   \return      current masking status
 */
-uint32_t dw_syscon_set_interrupt_switch(syscon_handle_t handle, uint32_t int_sel, bool status)
+uint32_t dw_syscon_set_interrupt_switch(uint32_t int_sel, bool status)
 {
     if (status == APT_DEF_ENABLE) {
-        handle->IECR = int_sel;
+        H_SYSCON->IECR = int_sel;
     }
     else {
-        handle->IDCR = int_sel;
+        H_SYSCON->IDCR = int_sel;
     }
 
-    return handle->IMSR;
+    return H_SYSCON->IMSR;
 }
 
 /**
   \brief       Clear pending bit
-  \param[in]   handle:   syscon to be operate
   \param[in]   int_sel:  interrupt to be clear
   \return      None
 */
-void dw_syscon_clear_interrupt_pending(syscon_handle_t handle, uint32_t int_sel)
+void dw_syscon_clear_interrupt_pending(uint32_t int_sel)
 {
-    handle->ICR = int_sel;
+    H_SYSCON->ICR = int_sel;
 }
 
 /**
   \brief       Get interrupt pending bit
-  \param[in]   handle:   syscon to be operate
   \param[in]   int_sel:  interrupt pending to be read
   \param[in]   status:   raw(T)/masked(F) pending bit select
   \return      corresponding bit of pending according to int_sel
 */
-uint32_t dw_syscon_get_interrupt_status(syscon_handle_t handle, uint32_t int_sel, bool status)
+uint32_t dw_syscon_get_interrupt_status(uint32_t int_sel, bool status)
 {
     if (status == APT_DEF_ENABLE) {
-        return ((handle->RISR) & int_sel);
+        return ((H_SYSCON->RISR) & int_sel);
     }
     else {
-        return ((handle->ISR) & int_sel);
+        return ((H_SYSCON->ISR) & int_sel);
     }
 }
 
 
 /**
   \brief       Get CINF, FINF information
-  \param[in]   handle   syscon to be operate
   \param[in]   info_sel information to be load
   \return      result stored in flash
 */
-uint32_t dw_syscon_get_project_information(syscon_handle_t handle, prj_infor_t info_sel)
+uint32_t dw_syscon_get_project_information(prj_infor_t info_sel)
 {
     switch(info_sel)
     {
         case CINF0:
-            return handle->CINF0;
+            return H_SYSCON->CINF0;
             break;
         case CINF1:
-            return handle->CINF1;
+            return H_SYSCON->CINF1;
             break;
         case FINF0:
-            return handle->FINF0;
+            return H_SYSCON->FINF0;
             break;
         case FINF1:
-            return handle->FINF1;
+            return H_SYSCON->FINF1;
             break;
     }
 	
@@ -677,16 +684,15 @@ uint32_t dw_syscon_get_project_information(syscon_handle_t handle, prj_infor_t i
 
 /**
   \brief       Get protection status
-  \param[in]   handle   syscon to be operate
   \param[in]   info_sel information to be load
   \return      result of check
 */
-uint32_t dw_syscon_get_protection_information(syscon_handle_t handle, prot_infor_t info_sel)
+uint32_t dw_syscon_get_protection_information(prot_infor_t info_sel)
 {
     switch(info_sel)
     {
         case RDP:
-            if ((handle->OPT0) & (1ul<<27)) {
+            if ((H_SYSCON->OPT0) & (1ul<<27)) {
                 return APT_DEF_ENABLE;
             }
             else {
@@ -694,7 +700,7 @@ uint32_t dw_syscon_get_protection_information(syscon_handle_t handle, prot_infor
             }
             break;
         case DBP:
-            if ((handle->OPT0) & (1ul<<8)) {
+            if ((H_SYSCON->OPT0) & (1ul<<8)) {
                 return APT_DEF_ENABLE;
             }
             else {
@@ -702,16 +708,16 @@ uint32_t dw_syscon_get_protection_information(syscon_handle_t handle, prot_infor
             }
             break;
         case HDP:
-            if ((handle->OPT0) & (1ul<<16)) {
+            if ((H_SYSCON->OPT0) & (1ul<<16)) {
                 return 1;
             }
-            else if ((handle->OPT0) & (1ul<<17)) {
+            else if ((H_SYSCON->OPT0) & (1ul<<17)) {
                 return 2;
             }
-            else if ((handle->OPT0) & (1ul<<18)) {
+            else if ((H_SYSCON->OPT0) & (1ul<<18)) {
                 return 3;
             }
-            else if ((handle->OPT0) & (1ul<<19)) {
+            else if ((H_SYSCON->OPT0) & (1ul<<19)) {
                 return 4;
             }
             else {
@@ -725,32 +731,30 @@ uint32_t dw_syscon_get_protection_information(syscon_handle_t handle, prot_infor
 
 /**
   \brief       Set hfosc (96MHz) enable/disable
-  \param[in]   handle: syscon to be operate
   \param[in]   status: enable/disable status
   \return      None
 */
-void dw_syscon_set_hfosc_switch(syscon_handle_t handle, bool status)
+void dw_syscon_set_hfosc_switch(bool status)
 {
     if (status == APT_DEF_ENABLE) {
-        handle->CLCR |= (1ul<<20);
-        while (!((handle->CLCR) & (1ul<<21)));
+        H_SYSCON->CLCR |= (1ul<<20);
+        while (!((H_SYSCON->CLCR) & (1ul<<21)));
 
     }
     else {
-        handle->CLCR &= ~(1ul<<20);
+        H_SYSCON->CLCR &= ~(1ul<<20);
 
     }
 }
 
 /**
   \brief       Set CLO output
-  \param[in]   handle: syscon to be operate
   \param[in]   clo_sel: clo source selection
   \return      None
 */
-void dw_syscon_clo_config(syscon_handle_t handle, clo_src_t clo_sel)
+void dw_syscon_clo_config(clo_src_t clo_sel)
 {
-    handle->CLCR = ((handle->CLCR) & ~(0xf<<16))|(clo_sel<<16);
+    H_SYSCON->CLCR = ((H_SYSCON->CLCR) & ~(0xf<<16))|(clo_sel<<16);
 }
 
 

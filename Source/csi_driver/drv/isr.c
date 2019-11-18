@@ -87,10 +87,10 @@ ATTRIBUTE_WEAK void isr_epwm_irqhandler(void) {
     H_EPWM->ICR = 0xffffffff;
 }
 
-ATTRIBUTE_WEAK void isr_exi_irqhandler(uint32_t exi_num)
-{
-    H_SYSCON->EXICR = 0xffffffff;
-}
+//ATTRIBUTE_WEAK void isr_exi_irqhandler(uint32_t exi_num)
+//{
+//    H_SYSCON->EXICR = 0xffffffff;
+//}
 
 ATTRIBUTE_WEAK void isr_usart_irqhandler(APT_USART_Reg_t *handle)
 {
@@ -235,35 +235,79 @@ ATTRIBUTE_ISR void EPWM_IRQHandler(void)
 ATTRIBUTE_ISR void EXI0_IRQHandler(void)
 {
     CSI_INTRPT_ENTER();
-    isr_exi_irqhandler(0);
+    gpio_exi_cb(EXI_EVENT_0);
+    H_SYSCON->EXICR = EXI_EVENT_0;
     CSI_INTRPT_EXIT();
 }
 
 ATTRIBUTE_ISR void EXI1_IRQHandler(void)
 {
     CSI_INTRPT_ENTER();
-    isr_exi_irqhandler(1);
+    gpio_exi_cb(EXI_EVENT_1);
+    H_SYSCON->EXICR = EXI_EVENT_1;
     CSI_INTRPT_EXIT();
 }
 
 ATTRIBUTE_ISR void EXI2_IRQHandler(void)
 {
     CSI_INTRPT_ENTER();
-    isr_exi_irqhandler(2);
+    if (H_SYSCON->EXICR & EXI_EVENT_2) {
+        gpio_exi_cb(EXI_EVENT_2);
+        H_SYSCON->EXICR = EXI_EVENT_2;
+    } else {
+        gpio_exi_cb(EXI_EVENT_3);
+        H_SYSCON->EXICR = EXI_EVENT_3;
+    }
     CSI_INTRPT_EXIT();
 }
 
 ATTRIBUTE_ISR void EXI3_IRQHandler(void)
 {
     CSI_INTRPT_ENTER();
-    isr_exi_irqhandler(3);
+    if (H_SYSCON->EXICR & EXI_EVENT_4) {
+        gpio_exi_cb(EXI_EVENT_4);
+        H_SYSCON->EXICR = EXI_EVENT_4;
+    } else if (H_SYSCON->EXICR & EXI_EVENT_5) {
+        gpio_exi_cb(EXI_EVENT_5);
+        H_SYSCON->EXICR = EXI_EVENT_5;
+    } else if (H_SYSCON->EXICR & EXI_EVENT_6) {
+        gpio_exi_cb(EXI_EVENT_6);
+        H_SYSCON->EXICR = EXI_EVENT_6;
+    } else if (H_SYSCON->EXICR & EXI_EVENT_7) {
+        gpio_exi_cb(EXI_EVENT_7);
+        H_SYSCON->EXICR = EXI_EVENT_7;
+    } else if (H_SYSCON->EXICR & EXI_EVENT_8) {
+        gpio_exi_cb(EXI_EVENT_8);
+        H_SYSCON->EXICR = EXI_EVENT_8;
+    } else {
+        gpio_exi_cb(EXI_EVENT_9);
+        H_SYSCON->EXICR = EXI_EVENT_9;
+    }
     CSI_INTRPT_EXIT();
 }
 
 ATTRIBUTE_ISR void EXI4_IRQHandler(void)
 {
     CSI_INTRPT_ENTER();
-    isr_exi_irqhandler(4);
+    if (H_SYSCON->EXICR & EXI_EVENT_10) {
+        gpio_exi_cb(EXI_EVENT_10);
+        H_SYSCON->EXICR = EXI_EVENT_10;
+    } else if (H_SYSCON->EXICR & EXI_EVENT_11) {
+        gpio_exi_cb(EXI_EVENT_11);
+        H_SYSCON->EXICR = EXI_EVENT_11;
+    } else if (H_SYSCON->EXICR & EXI_EVENT_12) {
+        gpio_exi_cb(EXI_EVENT_12);
+        H_SYSCON->EXICR = EXI_EVENT_12;
+    } else if (H_SYSCON->EXICR & EXI_EVENT_13) {
+        gpio_exi_cb(EXI_EVENT_13);
+        H_SYSCON->EXICR = EXI_EVENT_13;
+    } else if (H_SYSCON->EXICR & EXI_EVENT_14) {
+        gpio_exi_cb(EXI_EVENT_14);
+        H_SYSCON->EXICR = EXI_EVENT_14;
+    } else {
+        gpio_exi_cb(EXI_EVENT_15);
+        H_SYSCON->EXICR = EXI_EVENT_15;
+    }
     CSI_INTRPT_EXIT();
 }
 

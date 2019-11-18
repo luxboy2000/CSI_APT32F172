@@ -135,22 +135,135 @@ typedef struct {
     __IOM uint32_t PROT34;      /*!< 0x288: Prot19*/
     __IOM uint32_t PROT35;      /*!< 0x28C: Prot19*/
 
-} APT_SYSCON_Reg_t;
+} APT_SYSCON_Reg_t, *syscon_handle_t;
 
-/*----- GPIO Control Codes: Mode -----*/
+/*----- SYSCON Event -----*/
 typedef enum {
     GPIO_MODE_DISABLE          = 0,    ///< Disabled, High-Z
-    GPIO_MODE_INPUT               ,    ///< Input
-    GPIO_MODE_OUTPUT              ,    ///< Output
-    GPIO_MODE_OUTPUTMON           ,    ///< Output, with monitor
-    GPIO_MODE_AF1                 ,    ///< AF1
-    GPIO_MODE_AF2                 ,    ///< AF2
-    GPIO_MODE_AF3                 ,    ///< AF3
-    GPIO_MODE_AF4                 ,    ///< AF4
-    GPIO_MODE_AF5                 ,    ///< AF5
-    GPIO_MODE_AF6                 ,    ///< AF6
-    GPIO_MODE_AF7                 ,    ///< AF7
-} gpio_mode_e;
+} syscon_event_e;
+
+/*----- EMOSC mode -----*/
+typedef enum {
+    EMOSC_NR_OPTION            = 0,    ///< EMOSC Normal option
+    EMOSC_LF_OPTION               ,    ///< EMOSC Low frequence option
+} syscon_emosc_lf_e;
+
+
+/*----- OSC enable/disable option -----*/
+typedef enum {
+    ISOSC                = 1,    ///< EMOSC Normal option
+    IMOSC                = 2,    ///< EMOSC Low frequence option
+    EMOSC                = 4,    ///< EMOSC Low frequence option
+    HFOSC                = 8,    ///< EMOSC Low frequence option
+} syscon_oscsrc_e;
+
+/*----- System clock option -----*/
+typedef enum {
+    ISOSC_3M             = 0,    ///< EMOSC Normal option
+    IMOSC_20M               ,    ///< EMOSC Low frequence option
+    IMOSC_40M               ,    ///< EMOSC Low frequence option
+    EMOSC                   ,    ///< EMOSC Low frequence option
+} syscon_sysclk_e;
+
+/*----- enable/disable option -----*/
+typedef enum {
+    ENABLE                     = 0,    ///< EMOSC Normal option
+    DISABLE                       ,    ///< EMOSC Low frequence option
+} syscon_endis_e;
+
+/*----- Clock monitor Reset option -----*/
+typedef enum {
+    CKM_RST_OFF                = 0,    ///< EMOSC Normal option
+    CKM_RST_ON                    ,    ///< EMOSC Low frequence option
+} syscon_ckmrst_e;
+
+/*----- iWDT overtime setup -----*/
+typedef enum {
+    IWDT_OVT_0P128             = 0,    ///< iwdt overtime 0p128S
+    IWDT_OVT_0P256                ,    ///< iwdt overtime 0p256S
+    IWDT_OVT_0P5S                 ,    ///< iwdt overtime 0p500S
+    IWDT_OVT_1S                   ,    ///< iwdt overtime 1S
+    IWDT_OVT_2S                   ,    ///< iwdt overtime 2S
+    IWDT_OVT_3S                   ,    ///< iwdt overtime 3S
+    IWDT_OVT_4S                   ,    ///< iwdt overtime 4S
+    IWDT_OVT_8S                   ,    ///< iwdt overtime 8S
+} iwdt_ovt_e;
+
+/*----- iWDT alarm window setup -----*/
+typedef enum {
+    IWDT_WND_1IN8              = 0,    ///< iwdt window is 1in8 of total ovt
+    IWDT_WND_2IN8                 ,    ///< iwdt window is 2in8 of total ovt
+    IWDT_WND_3IN8                 ,    ///< iwdt window is 3in8 of total ovt
+    IWDT_WND_4IN8                 ,    ///< iwdt window is 4in8 of total ovt
+    IWDT_WND_5IN8                 ,    ///< iwdt window is 5in8 of total ovt
+    IWDT_WND_6IN8                 ,    ///< iwdt window is 6in8 of total ovt
+    IWDT_WND_7IN8                 ,    ///< iwdt window is 7in8 of total ovt
+} iwdt_wnd_e;
+
+/*----- LVD interrupt setup -----*/
+typedef enum {
+    LVD_INTAT2V55              = 0,    ///< LVD Int at 2V55
+    LVD_INTAT3V00                 ,    ///< LVD Int at 3V00
+    LVD_INTAT3V90                 ,    ///< LVD Int at 3V90
+    LVD_INTAT4V10                 ,    ///< LVD Int at 4V10
+    LVD_INTDIS                    ,    ///< LVD Interrupt disable
+} lvd_intlvl_e;
+
+/*----- LVD reset setup -----*/
+typedef enum {
+    LVD_RSTAT2P15              = 0,    ///< LVD Rst at 2P15
+    LVD_RSTAT2P75                 ,    ///< LVD Rst at 2P75
+    LVD_RSTAT3P35                 ,    ///< LVD Rst at 3P35
+    LVD_RSTAT3P65                 ,    ///< LVD Rst at 3P65
+} lvd_rstlvl_e;
+
+/*----- information to be load selection -----*/
+typedef enum {
+    CINF0                      = 0,    ///< select custom information0
+    CINF1                         ,    ///< select custom information1
+    FINF0                         ,    ///< select factory information0 
+    FINF1                         ,    ///< select factory information1 
+} prj_infor_e;
+
+/*----- protection information to be load selection -----*/
+typedef enum {
+    RDP                        = 0,    ///< select custom information0
+    DBP                           ,    ///< select custom information1
+    HDP                           ,    ///< select factory information0 
+} prot_infor_e;
+
+/*----- CLO source selection -----*/
+typedef enum {
+    CLO_ISCLK                  = 0,    ///< isclk as clo
+    CLO_IMCLK                  = 1,    ///< imclk as clo
+    CLO_EMCLK                  = 3,    ///< emclk as clo
+    CLO_SYSCLK                 = 7,    ///< sysclk as clo
+} clo_src_e;
+
+/*----- Reset source selection -----*/
+typedef union {
+    struct {
+        uint32_t RST_POR: 1;           ///< bit     0
+        uint32_t RST_LVR: 1;           ///< bit     1
+        uint32_t RST_EXT: 1;           ///< bit     2
+        uint32_t Reserved1: 1;         ///< bit     3
+        uint32_t RST_IWDT: 1;          ///< bit     4
+        uint32_t Reserved2: 1;         ///< bit     5
+        uint32_t RST_CMRST: 1;         ///< bit     6
+        uint32_t RST_CPU: 1;           ///< bit     7
+        uint32_t RST_SYSCON: 1;        ///< bit     8
+        uint32_t Reserved3: 23;        ///< bit 9..31
+    } b;
+    uint32_t w;
+} reset_src_t;
+
+
+
+
+
+
+
+
 
 /*----- GPIO Pullup/Down: Mode Parameters: Data Bits -----*/
 typedef enum {

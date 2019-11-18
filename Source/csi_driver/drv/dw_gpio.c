@@ -20,7 +20,6 @@
 #include <stdio.h>
 #include "apt_soc.h"
 #include "apt_gpio.h"
-#include "dw_gpio.h"
 #include "csi_core.h"
 #include "pin_name.h"
 
@@ -53,27 +52,28 @@ typedef union {
 
 
 // EXI interrupt call-back routine pointer
-#ifdef ISR_SUPPORT_EXI0
-static gpio_event_cb_t gpio_cb_pin0;
-#endif
+//#ifdef ISR_SUPPORT_EXI0
+//static gpio_event_cb_t gpio_cb_pin0;
+//#endif
+//
+//#ifdef ISR_SUPPORT_EXI1
+//static gpio_event_cb_t gpio_cb_pin1;
+//#endif
+//
+//#ifdef ISR_SUPPORT_EXI2
+//static gpio_event_cb_t gpio_cb_pin2to3;
+//#endif
+//
+//#ifdef ISR_SUPPORT_EXI3
+//static gpio_event_cb_t gpio_cb_pin4to9;
+//#endif
+//
+//#ifdef ISR_SUPPORT_EXI4
+//static gpio_event_cb_t gpio_cb_pin10to15;
+//#endif
+gpio_event_cb_t gpio_exi_cb;
 
-#ifdef ISR_SUPPORT_EXI1
-static gpio_event_cb_t gpio_cb_pin1;
-#endif
-
-#ifdef ISR_SUPPORT_EXI2
-static gpio_event_cb_t gpio_cb_pin2to3;
-#endif
-
-#ifdef ISR_SUPPORT_EXI3
-static gpio_event_cb_t gpio_cb_pin4to9;
-#endif
-
-#ifdef ISR_SUPPORT_EXI4
-static gpio_event_cb_t gpio_cb_pin10to15;
-#endif
-
-
+// Global variables stores current port conr content
 static gpio_conr_type gpio_pa0_config;
 static gpio_conr_type gpio_pa1_config;
 static gpio_conr_type gpio_pb0_config;
@@ -84,240 +84,6 @@ static gpio_conr_type gpio_pd0_config;
 // Functions
 //
 
-static int32_t gpio_set_direction(
-    void *port,
-    gpio_direction_e direction
-)
-{
-    dw_gpio_priv_t *gpio_priv = port;
-    dw_gpio_reg_t *gpio_reg = (dw_gpio_reg_t *)(gpio_priv->base);
-
-    if (direction == GPIO_DIRECTION_INPUT) {
-        gpio_reg->SWPORT_DDR &= (~gpio_priv->mask);
-    } else if (direction == GPIO_DIRECTION_OUTPUT) {
-        gpio_reg->SWPORT_DDR |= gpio_priv->mask;
-    } else {
-        return ERR_GPIO(GPIO_ERROR_DIRECTION);
-    }
-
-    return 0;
-}
-
-/*
- * Read the statu of the Port choosed.
- * Parameters:
- *   port:  use to choose a I/O port among Port A, B, or C.
- * return: the value of the corresponding Port.
- */
-
-static int32_t gpio_read(void *port, uint32_t *value)
-{
-    dw_gpio_priv_t *gpio_priv = port;
-    dw_gpio_control_reg_t *gpio_control_reg = (dw_gpio_control_reg_t *)(gpio_priv->base + 0x30);
-    *value = gpio_control_reg->EXT_PORTA;
-    return 0;
-}
-
-
-/*
- * Write an output value to corresponding Port.
- * Parameters:
- *   port:  use to choose a I/O port among Port A, B, or C.
- *   output: value that will be written to the corresponding Port.
- * return: SUCCESS
- */
-
-static int32_t gpio_write(void *port, uint32_t mask)
-{
-    dw_gpio_priv_t *gpio_priv = port;
-    dw_gpio_reg_t *gpio_reg = (dw_gpio_reg_t *)(gpio_priv->base);
-
-    uint32_t value = gpio_reg->SWPORT_DR;
-
-    value &= ~(mask);
-    value |= gpio_priv->value;
-    gpio_reg->SWPORT_DR = value;
-    return 0;
-}
-
-/**
- * Configure a GPIO gpio_set_irq_mode.
- * @param[in]   pin         the addr store the pin num.
- * @param[in]   _irqmode    the irqmode of gpio
- * @return      zero on success. -1 on falure.
- */
-static int32_t gpio_set_irq_mode(gpio_pin_handle_t pin, gpio_irq_mode_e irq_mode)
-{
-    dw_gpio_pin_priv_t *gpio_pin_priv = pin;
-
-    /* convert portidx to port handle */
-    dw_gpio_priv_t * port_handle = &gpio_handle[gpio_pin_priv->portidx];
-
-    dw_gpio_control_reg_t *gpio_control_reg = (dw_gpio_control_reg_t *)(port_handle->base + 0x30);
-    uint32_t offset = gpio_pin_priv->idx;
-    uint32_t mask = 1 << offset;
-
-    switch (irq_mode) {
-        /* rising edge interrupt mode */
-        case GPIO_IRQ_MODE_RISING_EDGE:
-            gpio_control_reg->INTTYPE_LEVEL |= mask;
-            gpio_control_reg->INT_POLARITY |= mask;
-            break;
-
-        /* falling edge interrupt mode */
-        case GPIO_IRQ_MODE_FALLING_EDGE:
-            gpio_control_reg->INTTYPE_LEVEL |= mask;
-            gpio_control_reg->INT_POLARITY &= (~mask);
-            break;
-
-        /* low level interrupt mode */
-        case GPIO_IRQ_MODE_LOW_LEVEL:
-            gpio_control_reg->INTTYPE_LEVEL &= (~mask);
-            gpio_control_reg->INT_POLARITY &= (~mask);
-            break;
-
-        /* high level interrupt mode */
-        case GPIO_IRQ_MODE_HIGH_LEVEL:
-            gpio_control_reg->INTTYPE_LEVEL &= (~mask);
-            gpio_control_reg->INT_POLARITY |= mask;
-            break;
-
-        /* double edge interrupt mode */
-        case GPIO_IRQ_MODE_DOUBLE_EDGE:
-            return ERR_GPIO(DRV_ERROR_UNSUPPORTED);
-
-        default:
-            return ERR_GPIO(GPIO_ERROR_IRQ_MODE);
-    }
-
-    return 0;
-}
-
-/*
- * Clear one or more interrupts of PortA.
- * Parameters:
- *   pinno:
- * return: SUCCESS.
- */
-
-static void gpio_irq_clear(gpio_pin_handle_t pin, uint32_t idx)
-{
-    dw_gpio_pin_priv_t *gpio_pin_priv = pin;
-
-    /* convert portidx to port handle */
-    dw_gpio_priv_t * port_handle = &gpio_handle[gpio_pin_priv->portidx];
-
-    dw_gpio_control_reg_t *gpio_control_reg = (dw_gpio_control_reg_t *)(port_handle->base + 0x30);
-
-    gpio_control_reg->PORTA_EOI = idx;
-}
-
-
-/*
- * Enable one or more interrupts of PortA.
- * Parameters:
- *   pinno:
- * return: SUCCESS.
- */
-static void gpio_irq_enable(gpio_pin_handle_t pin)
-{
-    dw_gpio_pin_priv_t *gpio_pin_priv = pin;
-
-    /* convert portidx to port handle */
-    dw_gpio_priv_t * port_handle = &gpio_handle[gpio_pin_priv->portidx];
-
-    dw_gpio_control_reg_t *gpio_control_reg = (dw_gpio_control_reg_t *)(port_handle->base + 0x30);
-    uint32_t offset = gpio_pin_priv->idx;
-    uint32_t val = gpio_control_reg->INTEN;
-    val |= (1 << offset);
-    gpio_control_reg->INTEN = val;
-}
-
-
-/*
- * Disable one or more interrupts of PortA.
- * Parameters:
- *   pinno:
- * return: SUCCESS.
- */
-
-static void gpio_irq_disable(gpio_pin_handle_t pin)
-{
-    dw_gpio_pin_priv_t *gpio_pin_priv = pin;
-    uint32_t offset = gpio_pin_priv->idx;
-
-    /* convert portidx to port handle */
-    dw_gpio_priv_t * port_handle = &gpio_handle[gpio_pin_priv->portidx];
-
-    dw_gpio_control_reg_t *gpio_control_reg = (dw_gpio_control_reg_t *)(port_handle->base + 0x30);
-    uint32_t val = gpio_control_reg->INTEN;
-    val &= ~(1 << offset);
-    gpio_control_reg->INTEN = val;
-}
-
-void dw_gpio_irqhandler(int idx)
-{
-    dw_gpio_control_reg_t *gpio_control_reg = (dw_gpio_control_reg_t *)(gpio_handle[idx].base + 0x30);
-
-    uint32_t value = gpio_control_reg->INTSTATUS;
-    uint8_t i;
-
-    /* find the interrput pin */
-    for (i = 0; i < 32; i++) {
-        if (value == (1 << i)) {
-            break;
-        }
-    }
-
-    uint32_t offset = i;
-    uint32_t pin_idx = offset;
-
-    for (i = 0; i < idx; i++) {
-        pin_idx += gpio_handle[i].pin_num;
-    }
-
-    dw_gpio_pin_priv_t *gpio_pin_priv = (dw_gpio_pin_priv_t *)&gpio_pin_handle[pin_idx];
-
-    /* execute the callback function */
-    if ((gpio_event_cb_t)(gpio_pin_priv->cb) && offset != 32) {
-        ((gpio_event_cb_t)(gpio_pin_priv->cb))(pin_idx);
-    }
-    gpio_irq_clear(gpio_pin_priv, value);  //clear the gpio interrupt
-}
-
-/**
-  \brief       Initialize GPIO module. 1. Initializes the resources needed for the GPIO handle 2.registers event callback function
-                3.get gpio_port_handle
-  \param[in]   port      port_name.
-  \return      gpio_port_handle
-*/
-gpio_port_handle_t csi_gpio_port_initialize(int32_t port)
-{
-    uint32_t i;
-    dw_gpio_priv_t *gpio_priv = NULL;
-
-    for (i = 0; i <= port; i++) {
-        /* obtain the gpio port information */
-        uint32_t base = 0u;
-        uint32_t pin_num;
-        uint32_t irq;
-        uint32_t idx = target_gpio_port_init(i, &base, &irq, &pin_num);
-
-        if (idx < 0 || idx >= CONFIG_GPIO_NUM) {
-            return NULL;
-        }
-
-        gpio_priv = &gpio_handle[idx];
-
-        gpio_priv->base = base;
-        gpio_priv->irq  = irq;
-        gpio_priv->pin_num  = pin_num;
-    }
-
-    csi_vic_enable_irq(gpio_priv->irq);
-
-    return (gpio_port_handle_t)gpio_priv;
-}
 
 void gpio_pin_char_set(uint32_t * target, uint32_t pin_idx, uint32_t value)
 {
@@ -336,47 +102,48 @@ void gpio_pin_char_set(uint32_t * target, uint32_t pin_idx, uint32_t value)
  * @param[i]    idx:    exi isr number to be initialized
  * @return      zero on success
 */
-int32_t csi_gpio_exi_cb_init (gpio_event_cb_t cb, uint32_t idx)
+int32_t csi_gpio_exi_cb_init (gpio_event_cb_t cb)
 {
     GPIO_NULL_PARAM_CHK(cb);
     if ((idx < 0)||(idx>4)) {
         return ERR_GPIO(DRV_ERROR_PARAMETER);
     }
 
+    gpio_exi_cb = cb;
     // transfer call-back pointer to global storage variable
-    switch (idx) {
-        case 0:
-        #ifdef ISR_SUPPORT_EXI0
-            gpio_cb_pin0 = cb;
-        #endif
-            break;
-        case 1:
-        #ifdef ISR_SUPPORT_EXI0
-            gpio_cb_pin1 = cb;
-        #endif
-            break;
-        case 2:
-        #ifdef ISR_SUPPORT_EXI0
-            gpio_cb_pin2to3 = cb;
-        #endif
-            break;
-        case 3:
-        #ifdef ISR_SUPPORT_EXI0
-            gpio_cb_pin4to9 = cb;
-        #endif
-            break;
-        case 4:
-        #ifdef ISR_SUPPORT_EXI0
-            gpio_cb_pin10to15 = cb;
-        #endif
-            break;
-        default:
-            gpio_cb_pin0 = NULL;
-            gpio_cb_pin1 = NULL;
-            gpio_cb_pin2to3 = NULL;
-            gpio_cb_pin4to9 = NULL;
-            gpio_cb_pin10to15 = NULL;
-    }
+    //switch (idx) {
+    //    case 0: // EXI0
+    //    #ifdef ISR_SUPPORT_EXI0
+    //        gpio_cb_pin0 = cb;
+    //    #endif
+    //        break;
+    //    case 1: // EXI1
+    //    #ifdef ISR_SUPPORT_EXI1
+    //        gpio_cb_pin1 = cb;
+    //    #endif
+    //        break;
+    //    case 2: // EXI2
+    //    #ifdef ISR_SUPPORT_EXI2
+    //        gpio_cb_pin2to3 = cb;
+    //    #endif
+    //        break;
+    //    case 3: // EXI3
+    //    #ifdef ISR_SUPPORT_EXI3
+    //        gpio_cb_pin4to9 = cb;
+    //    #endif
+    //        break;
+    //    case 4: // EXI4
+    //    #ifdef ISR_SUPPORT_EXI4
+    //        gpio_cb_pin10to15 = cb;
+    //    #endif
+    //        break;
+    //    default:
+    //        gpio_cb_pin0 = NULL;
+    //        gpio_cb_pin1 = NULL;
+    //        gpio_cb_pin2to3 = NULL;
+    //        gpio_cb_pin4to9 = NULL;
+    //        gpio_cb_pin10to15 = NULL;
+    //}
 
     return 0;
 }
@@ -520,7 +287,7 @@ int32_t csi_gpio_pin_func_config(gpio_pin_name gpio_pin, gpio_mode_e pin_mode)
   @param[in]   pin_mode    pull-up/down mode to be set.
   @return      error code
 */
-int32_t csi_gpio_pin_pull_config(gpio_pin_name gpio_pin, gpio_pull_e pin_mode)
+void csi_gpio_pin_pull_config(gpio_pin_name gpio_pin, gpio_pull_e pin_mode)
 {
     uint32_t port_idx = (gpio_pin>>4);
     uint32_t pin_idx = (gpio_pin & 0xful);
@@ -544,7 +311,6 @@ int32_t csi_gpio_pin_pull_config(gpio_pin_name gpio_pin, gpio_pull_e pin_mode)
             break;
     }
 
-    return 0;
 } 
 
 /**
@@ -553,7 +319,7 @@ int32_t csi_gpio_pin_pull_config(gpio_pin_name gpio_pin, gpio_pull_e pin_mode)
   @param[in]   pin_mode    IO character to be set.
   @return      error code
 */
-int32_t csi_gpio_pin_speed_config(gpio_pin_name gpio_pin, gpio_char_e pin_mode)
+void csi_gpio_pin_speed_config(gpio_pin_name gpio_pin, gpio_char_e pin_mode)
 {
     uint32_t port_idx = (gpio_pin>>4);
     uint32_t pin_idx = (gpio_pin & 0xful);
@@ -576,7 +342,6 @@ int32_t csi_gpio_pin_speed_config(gpio_pin_name gpio_pin, gpio_char_e pin_mode)
             break;
     }
 
-    return 0;
 } 
 
 
@@ -586,30 +351,49 @@ int32_t csi_gpio_pin_speed_config(gpio_pin_name gpio_pin, gpio_char_e pin_mode)
   @param[in]   pin_mode    IO character to be set.
   @return      error code
 */
-int32_t csi_gpio_pin_opendrain_config(gpio_pin_name gpio_pin, gpio_char_e pin_mode)
+void csi_gpio_pin_outputmode_config(gpio_pin_name gpio_pin, gpio_output_mode_e pin_mode)
 {
     uint32_t port_idx = (gpio_pin>>4);
     uint32_t pin_idx = (gpio_pin & 0xful);
 
     switch (port_idx) {
         case 1: // PORTA0
-            gpio_pin_char_set(&H_GPIOA0->OMCR, pin_idx, (uint32_t)pin_mode);
+            if (pin_mode == GPIO_PUSHPULL) {
+                H_GPIOA0->OMCR &= ~(1ul<<pin_idx);
+            } else {
+                H_GPIOA0->OMCR |= 1ul<<pin_idx;
+            }
             break;
         case 2: // PORTA1
-            gpio_pin_char_set(&H_GPIOA1->OMCR, pin_idx, (uint32_t)pin_mode);
+            if (pin_mode == GPIO_PUSHPULL) {
+                H_GPIOA1->OMCR &= ~(1ul<<pin_idx);
+            } else {
+                H_GPIOA1->OMCR |= 1ul<<pin_idx;
+            }
             break;
         case 3: // PORTB0
-            gpio_pin_char_set(&H_GPIOB0->OMCR, pin_idx, (uint32_t)pin_mode);
+            if (pin_mode == GPIO_PUSHPULL) {
+                H_GPIOB0->OMCR &= ~(1ul<<pin_idx);
+            } else {
+                H_GPIOB0->OMCR |= 1ul<<pin_idx;
+            }
             break;
         case 4: // PORTC0
-            gpio_pin_char_set(&H_GPIOC0->OMCR, pin_idx, (uint32_t)pin_mode);
+            if (pin_mode == GPIO_PUSHPULL) {
+                H_GPIOC0->OMCR &= ~(1ul<<pin_idx);
+            } else {
+                H_GPIOC0->OMCR |= 1ul<<pin_idx;
+            }
             break;
         case 5: // PORTD0
-            gpio_pin_char_set(&H_GPIOD0->OMCR, pin_idx, (uint32_t)pin_mode);
+            if (pin_mode == GPIO_PUSHPULL) {
+                H_GPIOD0->OMCR &= ~(1ul<<pin_idx);
+            } else {
+                H_GPIOD0->OMCR |= 1ul<<pin_idx;
+            }
             break;
     }
 
-    return 0;
 } 
 
 /**
