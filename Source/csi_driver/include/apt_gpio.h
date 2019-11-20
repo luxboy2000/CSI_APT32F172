@@ -177,19 +177,31 @@ typedef union {
 
 
 ////////////////////////////////// Public //////////////////////////////////////
-/**
- * @brief       ISR call-back registration
- * @param[i]    cb:     pointer to customer ISR when EXI is called 
- * @param[i]    idx:    exi isr number to be initialized
- * @return      zero on success
-*/
-int32_t csi_gpio_exi_cb_init (gpio_event_cb_t cb);
 
 /**
-  @brief       config multiple pin within one port
-  @param[in]   handle    gpio port handle to operate. ()
-  @return      error code
-*/
+   @brief ISR call-back registration
+ 
+   When exi interrupt is triggered, the system isr will call a specific function
+   to deal with, the pointer of a user defined function to process the event is 
+   registered by this function
+   
+   @param[in]   cb   pointer to customer ISR when EXI is called 
+   @return      zero on success
+ */ 
+int32_t csi_gpio_exi_cb_init (gpio_event_cb_t cb);
+
+/** 
+   @brief      PORT function config 
+    
+   Set a GPIO port with specific control data. The control data should be transferred
+   by a struct. The pull-up/pull-down resistor status on the GPIO also should be configured
+   as well.
+  
+   @param[in]  port_idx    target port name to be configured
+   @param[in]  conr_val    expected control register value to be set
+   @param[in]  pullst      pull-up/pull-down config
+   @return    error code
+ */
 int32_t csi_gpio_port_config(gpio_port_name port_idx, gpio_conr_type conr_val, uint32_t pullst);
 
 /**
