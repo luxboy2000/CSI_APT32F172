@@ -23,12 +23,12 @@
 
 #include <stdio.h>
 #include <csi_config.h>
-#include <drv_usart.h>
+//#include <drv_usart.h>
 #ifndef CONFIG_KERNEL_NONE
 #include <csi_kernel.h>
 #endif
 
-usart_handle_t console_handle = NULL;
+//usart_handle_t console_handle = NULL;
 
 int fputc(int ch, FILE *stream)
 {

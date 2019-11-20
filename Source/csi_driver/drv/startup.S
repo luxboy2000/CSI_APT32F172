@@ -16,7 +16,7 @@
 // @date     02. Sept 2019
 //****************************************************************************
 
-#include <csi_config.h>
+#include "csi_config.h"
 
 #undef  VIC_TSPR
 #define VIC_TSPR  0xE000EC10

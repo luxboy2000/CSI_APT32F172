@@ -17,127 +17,48 @@
 
 #include <csi_config.h>
 #include "soc.h"
+#include "apt_errno.h"
 #include "apt_syscon.h"
 #include "csi_core.h"
 #include "lib.h"
+#include "dw_syscon.h"
 
 #define ERR_SYSCON(errno) (CSI_DRV_ERRNO_SYSCON_BASE | errno)
 #define SYSCON_NULL_PARAM_CHK(para)                         \
-        do {                                        \
-            if (para == NULL) {                     \
-                return ERR_SYSCON(DRV_ERROR_PARAMETER);   \
-            }                                       \
-        } while (0)
+		do {                                        \
+			if (para == NULL) {                     \
+				return ERR_SYSCON(DRV_ERROR_PARAMETER);   \
+			}                                       \
+		} while (0)
 
 syscon_handle_t H_SYSCON  = (APT_SYSCON_Reg_t   *)APT_SYSCON_BASE;
 
+// syscon interrupt callback routine pointer
+syscon_event_cb_t syscon_event_cb;
 
 static bool emosc_intialized_flag;
 
-uint32_t _cur_hclk_freq = 10000000;
-uint32_t _cur_pclk_freq = 2500000;
-syscon_sysclk_e _cur_sysclk = IMOSC_20M;
+//sysclk_cfg_t sysclk_cfg = {10000000, 2500000, IMOSC_20M};
+sysclk_cfg_t sysclk_cfg = {
+							SYSTEM_CLOCK_SRC,
+							AHB_CLOCK_FREQ,
+							APB_CLOCK_FREQ
+							};
 
-///**
-//  \brief       Dispatch isr according to pending bit
-//  \param[in]   None
-//  \return      None
-//*/
-//ATTRIBUTE_WEAK void dw_syscon_irqhandler(void)
-//{
-//    uint32_t pendbit_num = 0;  // pending bit postion
-//    void (*isr_ptr_priv)(void);
-//
-//    /* Check the pending bit number */
-//    while ( !((SYSCON->MISR) & (1ul<<pendbit_num++)) );
-//
-//    isr_ptr_priv = NULL;
-//    for (i=0;i<sizeof(syscon_isr_table)/8;i++) {
-//        if (syscon_isr_table[i].pending_bit_num == pendbit_num) {
-//            isr_ptr_priv = syscon_isr_table[i].isr_ptr;
-//            break;
-//        }
-//    }
-//
-//    /* Call for isr if pending bit is registered with corresponding isr */
-//    if (isr_ptr_priv != NULL) {
-//        isr_ptr_priv();
-//    }
-//        
-//    /* Clear pending bit */
-//    SYSCON->ICR = (1ul<<pbit_num);
-//
-//
-//
-////
-////    /* Dispatch the action for ISR */
-////    switch (pendbit_num) {
-////        case SYSCON_INT_EVENT_ISOSC_STABLE: 
-////            /* Insert your code here */
-////            break;
-////        case SYSCON_INT_EVENT_IMOSC_STABLE:
-////            /* Insert your code here */
-////            break;
-////        case SYSCON_INT_EVENT_ESOSC_STABLE: 
-////            /* Insert your code here */
-////            break;
-////        case SYSCON_INT_EVENT_EMOSC_STABLE: 
-////            /* Insert your code here */
-////            break;
-////        case SYSCON_INT_EVENT_HFOSC_STABLE: 
-////            /* Insert your code here */
-////            break;
-////        case SYSCON_INT_EVENT_PLL_STABLE: 
-////            /* Insert your code here */
-////            break;
-////        case SYSCON_INT_EVENT_SYSCLK_STABLE: 
-////            /* Insert your code here */
-////            break;
-////        case SYSCON_INT_EVENT_IWDT: 
-////            /* Insert your code here */
-////            break;
-////        case SYSCON_INT_EVENT_WKI: 
-////            /* Insert your code here */
-////            break;
-////        case SYSCON_INT_EVENT_SRAMERR: 
-////            /* Insert your code here */
-////            break;
-////        case SYSCON_INT_EVENT_LVD: 
-////            /* Insert your code here */
-////            break;
-////        case SYSCON_INT_EVENT_HWD: 
-////            /* Insert your code here */
-////            break;
-////        case SYSCON_INT_EVENT_OPTERR: 
-////            /* Insert your code here */
-////            break;
-////        case SYSCON_INT_EVENT_UNLOCK: 
-////            /* Insert your code here */
-////            break;
-////        case SYSCON_INT_EVENT_ESLOST: 
-////            /* Insert your code here */
-////            break;
-////        case SYSCON_INT_EVENT_EMLOST: 
-////            /* Insert your code here */
-////            break;
-////        case SYSCON_INT_EVENT_EVTRG0: 
-////            /* Insert your code here */
-////            break;
-////        case SYSCON_INT_EVENT_EVTRG1: 
-////            /* Insert your code here */
-////            break;
-////        case SYSCON_INT_EVENT_EVTRG2: 
-////            /* Insert your code here */
-////            break;
-////        case SYSCON_INT_EVENT_EVTRG3: 
-////            /* Insert your code here */
-////            break;
-////        case SYSCON_INT_EVENT_CMDERR: 
-////            /* Insert your code here */
-////            break;
-////    }
-//
-//}
+////////////////////////////////// Public //////////////////////////////////////
+/**
+ * @brief       ISR call-back registration
+ * @param[i]    cb:     pointer to customer ISR when EXI is called 
+ * @param[i]    idx:    exi isr number to be initialized
+ * @return      zero on success
+*/
+int32_t csi_syscon_cb_init (syscon_event_cb_t cb)
+{
+	SYSCON_NULL_PARAM_CHK(cb);
+	syscon_event_cb = cb;
+
+	return 0;
+}
 
 /**
   \brief       config usart parity.
@@ -148,17 +69,17 @@ syscon_sysclk_e _cur_sysclk = IMOSC_20M;
 */
 void csi_syscon_emosc_config(syscon_emosc_lf_e lf_sel, uint32_t osc_stabletime, uint32_t osc_gain)
 {
-    switch (lf_sel) {
-        case EMOSC_LF_OPTION: /* low freq emosc */
-            H_SYSCON->OSTR  = osc_stabletime;
-            H_SYSCON->PWRCR = ((H_SYSCON->PWRCR) & ~(0xful<<8)) | ((osc_gain & 7ul)<<8) | PWRCR_KEY;
-            break;
-        default: // normal 
-            H_SYSCON->OSTR  = osc_stabletime;
-            H_SYSCON->PWRCR = ((H_SYSCON->PWRCR) & ~(0xful<<8)) | (osc_gain<<8) | PWRCR_KEY;
-    }
+	switch (lf_sel) {
+		case EMOSC_LF_OPTION: /* low freq emosc */
+			H_SYSCON->OSTR  = osc_stabletime;
+			H_SYSCON->PWRCR = ((H_SYSCON->PWRCR) & ~(0xful<<8)) | ((osc_gain & 7ul)<<8) | PWRCR_KEY;
+			break;
+		default: // normal 
+			H_SYSCON->OSTR  = osc_stabletime;
+			H_SYSCON->PWRCR = ((H_SYSCON->PWRCR) & ~(0xful<<8)) | (osc_gain<<8) | PWRCR_KEY;
+	}
 
-    emosc_intialized_flag = true;
+	emosc_intialized_flag = true;
 }
 
 /**
@@ -169,31 +90,31 @@ void csi_syscon_emosc_config(syscon_emosc_lf_e lf_sel, uint32_t osc_stabletime, 
 */
 int32_t csi_syscon_set_clocksource_switch(syscon_oscsrc_e clock_source, syscon_endis_e status)
 {
-    volatile uint32_t i;
-    uint32_t cur_clkstatus;
+	volatile uint32_t i;
+	uint32_t cur_clkstatus;
 
-    if ((clock_source == EMOSC) && !emosc_intialized_flag) {
-        return ERR_SYSCON(DRV_ERROR_OSCSET_EMOSCUNSTABLE);
-    }
+	if ((clock_source == EMOSC) && !emosc_intialized_flag) {
+		return ERR_SYSCON(DRV_ERROR_SPECIFIC0);
+	}
 
-    cur_clkstatus = H_SYSCON->GCSR;
-    if (status == ENABLE) {
-        H_SYSCON->GCER = clock_source;
-        cur_clkstatus |= clock_source;
-    }
-    else {
-        H_SYSCON->GCDR = clock_source;
-        cur_clkstatus &= ~clock_source;
-    }
+	cur_clkstatus = H_SYSCON->GCSR;
+	if (status == ENABLE) {
+		H_SYSCON->GCER = clock_source;
+		cur_clkstatus |= clock_source;
+	}
+	else {
+		H_SYSCON->GCDR = clock_source;
+		cur_clkstatus &= ~clock_source;
+	}
 
-    for (i=0;i<100;i++);
+	for (i=0;i<100;i++);
 
-    if (H_SYSCON->GCSR != cur_clkstatus) {
-        ERR_SYSCON(DRV_ERROR_OSCSET_CHECKFAIL);
-    }
-    else {
-        return 0;
-    }
+	if (H_SYSCON->GCSR != cur_clkstatus) {
+		return ERR_SYSCON(DRV_ERROR_SPECIFIC1);
+	}
+	else {
+		return 0;
+	}
 }
 
 
@@ -206,120 +127,117 @@ int32_t csi_syscon_set_clocksource_switch(syscon_oscsrc_e clock_source, syscon_e
 */
 int32_t csi_syscon_systemclock_config(syscon_sysclk_e sysclk_setup, uint32_t hclk_freq, uint32_t pclk_freq)
 {
-    volatile uint32_t i;
-    uint32_t target_sysclk_freq = 0;
-    uint32_t target_hclk_freq, hclk_div;
-    uint32_t target_pclk_freq, pclk_div;
+	volatile uint32_t i;
+	uint32_t target_sysclk_freq = 0;
+	uint32_t target_hclk_freq, hclk_div;
+	uint32_t target_pclk_freq, pclk_div;
 
-    // parameter check
-    if (hclk_freq < pclk_freq) {
-        return ERR_SYSCON(DRV_ERROR_SYSFREQ_CFGERR0);
-    }
+	// parameter check
+	if (hclk_freq < pclk_freq) {
+		return ERR_SYSCON(DRV_ERROR_PARAMETER);
+	}
 
-    switch (sysclk_setup) {
-        case IMOSC_40M:
-            if ( hclk_freq <= 40000000 ) {
-                target_sysclk_freq = 40000000;
-            } else {
-                return ERR_SYSCON(DRV_ERROR_SYSFREQ_CFGERR1);
-            }
+	switch (sysclk_setup) {
+		case IMOSC_40M:
+			if ( hclk_freq <= 40000000 ) {
+				target_sysclk_freq = 40000000;
+			} else {
+				return ERR_SYSCON(DRV_ERROR_PARAMETER);
+			}
 			break;
-        case IMOSC_20M:
-            if ( hclk_freq <= 20000000 ) {
-                target_sysclk_freq = 20000000;
-            } else {
-                return ERR_SYSCON(DRV_ERROR_SYSFREQ_CFGERR2);
-            }
-        case EMOSC:
-            if ( (hclk_freq <= EMOSC_FREQ) && (EMOSC_FREQ <= 24000000) ) {
-                target_sysclk_freq = EMOSC_FREQ;
-            } else {
-                return ERR_SYSCON(DRV_ERROR_SYSFREQ_CFGERR3);
-            }
-            break;
-        case ISOSC:
-            if ( (hclk_freq <= 3000000) ) {
-                target_sysclk_freq = 3000000;
-            } else {
-                return ERR_SYSCON(DRV_ERROR_SYSFREQ_CFGERR4);
-            }
-            break;
-    }
+		case IMOSC_20M:
+			if ( hclk_freq <= 20000000 ) {
+				target_sysclk_freq = 20000000;
+			} else {
+				return ERR_SYSCON(DRV_ERROR_PARAMETER);
+			}
+			break;
+		case EMOSC_24M:
+			if ( (hclk_freq <= EMOSC_FREQ) && (EMOSC_FREQ <= 24000000) ) {
+				target_sysclk_freq = EMOSC_FREQ;
+			} else {
+				return ERR_SYSCON(DRV_ERROR_PARAMETER);
+			}
+			break;
+		case ISOSC_3M:
+			if ( (hclk_freq <= 3000000) ) {
+				target_sysclk_freq = 3000000;
+			} else {
+				return ERR_SYSCON(DRV_ERROR_PARAMETER);
+			}
+			break;
+	}
 	target_hclk_freq = hclk_freq;
 
-    hclk_div = target_sysclk_freq/target_hclk_freq;
-    target_hclk_freq = target_sysclk_freq/hclk_div;
-    pclk_div = hclk_freq/pclk_freq;
-    target_pclk_freq = target_hclk_freq/pclk_div;
+	hclk_div = target_sysclk_freq/target_hclk_freq;
+	target_hclk_freq = target_sysclk_freq/hclk_div;
+	pclk_div = hclk_freq/pclk_freq;
+	target_pclk_freq = target_hclk_freq/pclk_div;
 
-    // switch system clock as IMO40M
-    if ((_cur_sysclk == IMOSC_20M) && (sysclk_setup == IMOSC_40M)) {
-        H_SYSCON->GCER = 1; // enable ISOSC
-        H_SYSCON->ERRINF = 0;
-        for (i=0;i<100;i++);
-        H_SYSCON->SCLKCR = (4 | SCLKCR_KEY); // switch to ISOSC as sysclk
-        for (i=0;i<10;i++);
-        if ((H_SYSCON->ERRINF) & (1ul<<4)) {
-            return ERR_SYSCON(DRV_ERROR_SYSCLK_SWFAIL0);
-        }
-        H_SYSCON->GCDR = 2; // disable IMOSC
-        H_SYSCON->CLCR |= (1ul<<22);
-        H_SYSCON->GCER = 2; // enable IMOSC
-        for (i=0;i<100;i++);
-        H_SYSCON->SCLKCR = ((hclk_div<<8)|SCLKCR_KEY);
-        for (i=0;i<10;i++);
-        if ((H_SYSCON->ERRINF) & (1ul<<4)) {
-            return ERR_SYSCON(DRV_ERROR_SYSCLK_SWFAIL1);
-        }
-    }
-    // switch system clock as IMO20M
-    else if ((_cur_sysclk == IMOSC_40M) && (sysclk_setup == IMOSC_20M)) {
-        H_SYSCON->GCER = 1; // enable ISOSC
-        H_SYSCON->ERRINF = 0;
-        for (i=0;i<100;i++);
-        H_SYSCON->SCLKCR = (4 | SCLKCR_KEY); // switch to ISOSC as sysclk
-        for (i=0;i<10;i++);
-        if ((H_SYSCON->ERRINF) & (1ul<<4)) {
-            return ERR_SYSCON(DRV_ERROR_SYSCLK_SWFAIL2);
-        }
-        H_SYSCON->GCDR = 2; // disable IMOSC
-        H_SYSCON->CLCR &= ~(1ul<<22);
-        H_SYSCON->GCER = 2; // enable IMOSC
-        for (i=0;i<100;i++);
-        H_SYSCON->SCLKCR = ((hclk_div<<8)|SCLKCR_KEY);
-        for (i=0;i<10;i++);
-        if ((H_SYSCON->ERRINF) & (1ul<<4)) {
-            return ERR_SYSCON(DRV_ERROR_SYSCLK_SWFAIL3);
-        }
-    // switch system clock as EMO
-    } else if ((_cur_sysclk != EMOSC) && (sysclk_setup == EMOSC)) {
-        H_SYSCON->ERRINF = 0;
-        H_SYSCON->SCLKCR = (1 | (hclk_div<<8) | SCLKCR_KEY); // switch to EMOSC as sysclk
-        for (i=0;i<10;i++);
-        if ((H_SYSCON->ERRINF) & (1ul<<4)) {
-            return ERR_SYSCON(DRV_ERROR_SYSCLK_SWFAIL4);
-        }
-    // switch system clock as ISO3M
-    } else if ((_cur_sysclk != ISOSC_3M) && (sysclk_setup == ISOSC_3M)) {
-        H_SYSCON->ERRINF = 0;
-        H_SYSCON->SCLKCR = (4 | (hclk_div<<8) | SCLKCR_KEY); // switch to ISOSC as sysclk
-        for (i=0;i<10;i++);
-        if ((H_SYSCON->ERRINF) & (1ul<<4)) {
-            return ERR_SYSCON(DRV_ERROR_SYSCLK_SWFAIL5);
-        }
-    } else { // only change div option
-        H_SYSCON->SCLKCR = ((H_SYSCON->SCLKCR)&0xff) |  (hclk_div<<8) | SCLKCR_KEY;
-    }
+	// switch system clock as IMO40M
+	if ((sysclk_cfg._cur_sysclk == IMOSC_20M) && (sysclk_setup == IMOSC_40M)) {
+		H_SYSCON->GCER = 1; // enable ISOSC
+		for (i=0;i<100;i++);
+		H_SYSCON->SCLKCR = (4 | SCLKCR_KEY); // switch to ISOSC as sysclk
+		for (i=0;i<10;i++);
+		if ((H_SYSCON->ERRINF) & (1ul<<4)) {
+			return ERR_SYSCON(DRV_ERROR_SPECIFIC2);
+		}
+		H_SYSCON->GCDR = 2; // disable IMOSC
+		H_SYSCON->CLCR |= (1ul<<22);
+		H_SYSCON->GCER = 2; // enable IMOSC
+		for (i=0;i<100;i++);
+		H_SYSCON->SCLKCR = ((hclk_div<<8)|SCLKCR_KEY);
+		for (i=0;i<10;i++);
+		if ((H_SYSCON->ERRINF) & (1ul<<4)) {
+			return ERR_SYSCON(DRV_ERROR_SPECIFIC3);
+		}
+	}
+	// switch system clock as IMO20M
+	else if ((sysclk_cfg._cur_sysclk == IMOSC_40M) && (sysclk_setup == IMOSC_20M)) {
+		H_SYSCON->GCER = 1; // enable ISOSC
+		for (i=0;i<100;i++);
+		H_SYSCON->SCLKCR = (4 | SCLKCR_KEY); // switch to ISOSC as sysclk
+		for (i=0;i<10;i++);
+		if ((H_SYSCON->ERRINF) & (1ul<<4)) {
+			return ERR_SYSCON(DRV_ERROR_SPECIFIC4);
+		}
+		H_SYSCON->GCDR = 2; // disable IMOSC
+		H_SYSCON->CLCR &= ~(1ul<<22);
+		H_SYSCON->GCER = 2; // enable IMOSC
+		for (i=0;i<100;i++);
+		H_SYSCON->SCLKCR = ((hclk_div<<8)|SCLKCR_KEY);
+		for (i=0;i<10;i++);
+		if ((H_SYSCON->ERRINF) & (1ul<<4)) {
+			return ERR_SYSCON(DRV_ERROR_SPECIFIC5);
+		}
+	// switch system clock as EMO
+	} else if ((sysclk_cfg._cur_sysclk != EMOSC_24M) && (sysclk_setup == EMOSC_24M)) {
+		H_SYSCON->SCLKCR = (1 | (hclk_div<<8) | SCLKCR_KEY); // switch to EMOSC as sysclk
+		for (i=0;i<10;i++);
+		if ((H_SYSCON->ERRINF) & (1ul<<4)) {
+			return ERR_SYSCON(DRV_ERROR_SPECIFIC6);
+		}
+	// switch system clock as ISO3M
+	} else if ((sysclk_cfg._cur_sysclk != ISOSC_3M) && (sysclk_setup == ISOSC_3M)) {
+		H_SYSCON->SCLKCR = (4 | (hclk_div<<8) | SCLKCR_KEY); // switch to ISOSC as sysclk
+		for (i=0;i<10;i++);
+		if ((H_SYSCON->ERRINF) & (1ul<<4)) {
+			return ERR_SYSCON(DRV_ERROR_SPECIFIC7);
+		}
+	} else { // only change div option
+		H_SYSCON->SCLKCR = ((H_SYSCON->SCLKCR)&0xff) |  (hclk_div<<8) | SCLKCR_KEY;
+	}
 
-    /* Setup PCLK divider */
-    H_SYSCON->PCLKCR = ((pclk_div<<8)|PCLKCR_KEY);
+	/* Setup PCLK divider */
+	H_SYSCON->PCLKCR = ((pclk_div<<8)|PCLKCR_KEY);
 
-    /* Store config to global variables */
-    _cur_sysclk = sysclk_setup; 
-    _cur_hclk_freq = target_hclk_freq;
-    _cur_pclk_freq = target_pclk_freq;
+	/* Store config to global variables */
+	sysclk_cfg._cur_sysclk = sysclk_setup; 
+	sysclk_cfg._cur_hclk_freq = target_hclk_freq;
+	sysclk_cfg._cur_pclk_freq = target_pclk_freq;
 
-    return 0;
+	return 0;
 }
 
 /**
@@ -327,29 +245,26 @@ int32_t csi_syscon_systemclock_config(syscon_sysclk_e sysclk_setup, uint32_t hcl
   \param[in]   handle   syscon to be operate
   \param[in]   status   en/dis operation
   \param[in]   pclk0_sel individual pclk target on PCLK0
-                         defined as: PCLK_ENDIS_ADC/PCLK_ENDIS_UART0 ...
+						 defined as: PCLK_ADC/PCLK_UART0 ...
   \param[in]   pclk1_sel individual pclk target on PCLK1
   \return      negtive when assignment is not in right pclk domain
 */
-int32_t csi_syscon_set_individual_pclk_switch(syscon_endis_e status, uint32_t pclk0_sel, uint32_t pclk1_sel)
+int32_t csi_syscon_set_solo_pclk_switch(syscon_endis_e status, uint64_t pclk_sel)
 {
-    if ((pclk0_sel & (1ul<<31))||!(pclk1_sel & (1ul<<31))) {    // wrong setup of pclk domain assignment
-        return -1;
-    }
-    else {
-        switch (status) {
-            case ENABLE:  /*enable*/
-                H_SYSCON->PCER0 = pclk0_sel;
-                H_SYSCON->PCER1 = pclk1_sel;
-                break;    
-            default: /*disable*/
-                H_SYSCON->PCDR0 = pclk0_sel;
-                H_SYSCON->PCDR1 = pclk1_sel;
-                break;
-        }
-    }
-
-    return 0;
+	pclk_conr_type pclk_setup;
+	pclk_setup.PCLKCR = pclk_sel;
+	
+	switch (status) {
+		case ENABLE:  /*enable*/
+			H_SYSCON->PCER0 = pclk_setup.w.PCLKCR0;
+			H_SYSCON->PCER1 = pclk_setup.w.PCLKCR1;
+			break;    
+		default: /*disable*/
+			H_SYSCON->PCDR0 = pclk_setup.w.PCLKCR0;
+			H_SYSCON->PCDR1 = pclk_setup.w.PCLKCR1;
+			break;
+	}
+	return 0;
 }
 
 /**
@@ -359,16 +274,16 @@ int32_t csi_syscon_set_individual_pclk_switch(syscon_endis_e status, uint32_t pc
 */
 void csi_syscon_set_all_pclk_switch(syscon_endis_e status)
 {
-    switch (status) {
-        case ENABLE:  /*enable*/
-            H_SYSCON->PCER0 = 0xffffffff;
-            H_SYSCON->PCER1 = 0xffffffff;
-            break;    
-        default: /*disable*/
-            H_SYSCON->PCDR0 = 0xffffffff;
-            H_SYSCON->PCDR1 = 0xffffffff;
-            break;
-    }
+	switch (status) {
+		case ENABLE:  /*enable*/
+			H_SYSCON->PCER0 = 0xffffffff;
+			H_SYSCON->PCER1 = 0xffffffff;
+			break;    
+		default: /*disable*/
+			H_SYSCON->PCDR0 = 0xffffffff;
+			H_SYSCON->PCDR1 = 0xffffffff;
+			break;
+	}
 }
 
 /**
@@ -377,31 +292,29 @@ void csi_syscon_set_all_pclk_switch(syscon_endis_e status)
   \param[in]   rst_on_fail  generate reset when fail or not  (disable is default)
   \return      None
 */
-int32_t csi_syscon_set_clockmonitor_switch(syscon_endis_e status, syscon_ckmrst_e rst_on_fail)
+int32_t csi_syscon_clockmonitor_set_switch(syscon_endis_e status, syscon_ckmrst_e rst_on_fail)
 {
-    if (!((H_SYSCON->GCSR) & 1ul)) {
-        return ERR_SYSCON(DRV_ERROR_CKM_ISOABS);
-    }
+	if (!((H_SYSCON->GCSR) & 1ul)) {
+		return ERR_SYSCON(DRV_ERROR_UNSUPPORTED);
+	}
 
-    H_SYSCON->ERRINF = 0;
+	if ((status == ENABLE) && (rst_on_fail == CKM_RST_ON)) {
+		H_SYSCON->GCER = (1ul<<18) | (1ul<<19);
+	}
+	else if ((status == ENABLE) && (rst_on_fail == CKM_RST_OFF)) {
+		H_SYSCON->GCER = (1ul<<18) ;
+		H_SYSCON->GCDR = (1ul<<19) ;
+	}
+	else {
+		H_SYSCON->GCDR = (1ul<<18) | (1ul<<19) ;
+	}
 
-    if ((status == ENABLE) && (rst_on_fail == CKM_RST_ON)) {
-        H_SYSCON->GCER = (1ul<<18) | (1ul<<19);
-    }
-    else if ((status == ENABLE) && (rst_on_fail == CKM_RST_OFF)) {
-        H_SYSCON->GCER = (1ul<<18) ;
-        H_SYSCON->GCDR = (1ul<<19) ;
-    }
-    else {
-        H_SYSCON->GCDR = (1ul<<18) | (1ul<<19) ;
-    }
-
-    if ((H_SYSCON->ERRINF) & (1ul<<11)) {
-        return ERR_SYSCON(DRV_ERROR_CKM_SETFAIL);
-    }
-    else {
-        return 0;
-    }
+	if ((H_SYSCON->ERRINF) & (1ul<<11)) {
+		return ERR_SYSCON(DRV_ERROR_SPECIFIC6);
+	}
+	else {
+		return 0;
+	}
 }
 
 /**
@@ -411,12 +324,12 @@ int32_t csi_syscon_set_clockmonitor_switch(syscon_endis_e status, syscon_ckmrst_
 */
 void csi_syscon_pclk_active_under_sleep(syscon_endis_e status)
 {
-    if (status == APT_DEF_ENABLE) {
-        H_SYSCON->GCER = (1ul<<8);
-    } 
-    else {
-        H_SYSCON->GCDR = (1ul<<8);
-    }
+	if (status == ENABLE) {
+		H_SYSCON->GCER = (1ul<<8);
+	} 
+	else {
+		H_SYSCON->GCDR = (1ul<<8);
+	}
 }
 
 /**
@@ -424,14 +337,14 @@ void csi_syscon_pclk_active_under_sleep(syscon_endis_e status)
   \param[in]   status   en/dis operation(disable is default)
   \return      None
 */
-void csi_syscon_set_iwdt_switch(syscon_endis_e status)
+void csi_syscon_iwdt_set_switch(syscon_endis_e status)
 {
-    if (status == APT_DEF_ENABLE) {
-        H_SYSCON->IWDEDR = IWDEDR_KEY ;
-    } 
-    else {
-        H_SYSCON->IWDEDR = IWDEDR_KEY | 0x5555;
-    }
+	if (status == ENABLE) {
+		H_SYSCON->IWDEDR = IWDEDR_KEY ;
+	} 
+	else {
+		H_SYSCON->IWDEDR = IWDEDR_KEY | 0x5555;
+	}
 }
 
 /**
@@ -440,10 +353,10 @@ void csi_syscon_set_iwdt_switch(syscon_endis_e status)
 */
 void csi_syscon_iwdt_reload(void)
 {
-    volatile uint32_t i;
-    H_SYSCON->IWDCNT = (0x5Aul<<24);
-    for (i=0;i<100;i++);
-    while ((H_SYSCON->IWDCNT) & (1ul<<31));
+	volatile uint32_t i;
+	H_SYSCON->IWDCNT = (0x5Aul<<24);
+	for (i=0;i<100;i++);
+	while ((H_SYSCON->IWDCNT) & (1ul<<31));
 }
 
 /**
@@ -454,7 +367,7 @@ void csi_syscon_iwdt_reload(void)
 */
 void csi_syscon_iwdt_config(iwdt_ovt_e iwdt_ovt, iwdt_wnd_e iwdt_wnd)
 {
-    H_SYSCON->IWDCR = (iwdt_ovt << 8) | (iwdt_wnd << 2) | (0x8778ul << 16);
+	H_SYSCON->IWDCR = (iwdt_ovt << 8) | (iwdt_wnd << 2) | IWDT_KEY;
 }
 
 /**
@@ -465,12 +378,12 @@ void csi_syscon_iwdt_config(iwdt_ovt_e iwdt_ovt, iwdt_wnd_e iwdt_wnd)
 */
 void csi_syscon_lvd_config(lvd_intlvl_e lvd_intlvl, lvd_rstlvl_e lvd_rstlvl)
 {
-    if (lvd_intlvl == LVD_INTDIS) {
-        H_SYSCON->LVDCR = ((H_SYSCON->LVDCR) & 0xf) | (0<<11) | (lvd_rstlvl<<12) | LVDCR_KEY;
-    }
-    else {
-        H_SYSCON->LVDCR = ((H_SYSCON->LVDCR) & 0xf) | (1ul<<11) | (lvd_intlvl<<8) | (lvd_rstlvl<<12) | LVDCR_KEY;
-    }
+	if (lvd_intlvl == LVD_INTDIS) {
+		H_SYSCON->LVDCR = ((H_SYSCON->LVDCR) & 0xf) | (0<<11) | (lvd_rstlvl<<12) | LVDCR_KEY;
+	}
+	else {
+		H_SYSCON->LVDCR = ((H_SYSCON->LVDCR) & 0xf) | (1ul<<11) | (lvd_intlvl<<8) | (lvd_rstlvl<<12) | LVDCR_KEY;
+	}
 
 }
 
@@ -479,100 +392,97 @@ void csi_syscon_lvd_config(lvd_intlvl_e lvd_intlvl, lvd_rstlvl_e lvd_rstlvl)
   \param[in]   status   en/dis operation(APT_DEF_ENABLE is default)
   \return      None
 */
-void csi_syscon_set_lvd_switch(syscon_endis_e status)
+void csi_syscon_lvd_set_switch(syscon_endis_e status)
 {
-    if (status == ENABLE) {
-        H_SYSCON->LVDCR = LVDCR_KEY | ((H_SYSCON->LVDCR) & ~0xf) ;
-    } 
-    else {
-        H_SYSCON->LVDCR = LVDCR_KEY | ((H_SYSCON->LVDCR) | 0xa);
-    }
+	if (status == ENABLE) {
+		H_SYSCON->LVDCR = LVDCR_KEY | ((H_SYSCON->LVDCR) & ~0xf) ;
+	} 
+	else {
+		H_SYSCON->LVDCR = LVDCR_KEY | ((H_SYSCON->LVDCR) | 0xa);
+	}
 }
 
 /**
   \brief       Get LVD level
-  \param[in]   iwdt_ovt overflow time config
-  \param[in]   iwdt_wnd alarm window time config
-  \return      None
+  \return      LVD current level
 */
-bool csi_syscon_get_lvd_status(void)
+bool csi_syscon_lvd_get_status(void)
 {
-    bool lvd_flag;
-    if ((H_SYSCON->LVDCR) & (1ul<<15)) {
-        lvd_flag = true;
-    }
-    else {
-        lvd_flag = false;
-    }
-    
-    return lvd_flag;
+	bool lvd_flag;
+	if ((H_SYSCON->LVDCR) & (1ul<<15)) {
+		lvd_flag = true;    // vdd < vth
+	}
+	else {
+		lvd_flag = false;   // vdd > vth
+	}
+	
+	return lvd_flag;
 }
 
 /**
   \brief       EXI trigger level rising edge config
-  \param[in]   exi_sel:  exi line to be set
+  \param[in]   exi_sel:  exi event to be set
   \param[in]   status:   enable/disable control(APT_DEF_ENABLE is default)
   \return      current setup of falling edge config
 */
-uint32_t csi_syscon_exi_set_rising(uint32_t exi_sel, syscon_endis_e status)
+uint32_t csi_syscon_exi_set_rising(exi_event_e exi_sel, syscon_endis_e status)
 {
-    if (status == ENABLE) { /* select as rising edge*/
-        H_SYSCON->EXIRT |= exi_sel;
-    }
-    else
-    {
-        H_SYSCON->EXIRT &= ~exi_sel;
-    }
+	if (status == ENABLE) { /* select as rising edge*/
+		H_SYSCON->EXIRT |= 1ul<<exi_sel;
+	}
+	else
+	{
+		H_SYSCON->EXIRT &= ~(1ul<<exi_sel);
+	}
 
-    return H_SYSCON->EXIRT;
+	return H_SYSCON->EXIRT;
 }
 
 /**
   \brief       EXI trigger level rising edge config
-  \param[in]   exi_sel:  exi line to be set
+  \param[in]   exi_sel:  exi event to be set
   \param[in]   status:   enable/disable control(APT_DEF_ENABLE is default)
   \return      current setup of falling edge config
 */
-uint32_t dw_syscon_exi_set_falling(uint32_t exi_sel, bool status)
+uint32_t csi_syscon_exi_set_falling(exi_event_e exi_sel, syscon_endis_e status)
 {
-    if (status == APT_DEF_ENABLE) { /* select as falling edge*/
-        H_SYSCON->EXIFT |= exi_sel;
-    }
-    else
-    {
-        H_SYSCON->EXIFT &= ~exi_sel;
-    }
+	if (status == ENABLE) { /* select as falling edge*/
+		H_SYSCON->EXIFT |= 1ul<<exi_sel;
+	}
+	else
+	{
+		H_SYSCON->EXIFT &= ~(1ul<<exi_sel);
+	}
 
-    return H_SYSCON->EXIFT;
+	return H_SYSCON->EXIFT;
 }
 
 /**
   \brief       EXI enabled/disable control
-  \param[in]   exi_sel:  exi line to be set
+  \param[in]   exi_sel:  exi event to be set
   \param[in]   status:   enable/disable control(APT_DEF_ENABLE is default)
   \return      current masking status
 */
-uint32_t dw_syscon_set_exi_switch(uint32_t exi_sel, bool status)
+uint32_t csi_syscon_exi_set_switch(exi_event_e exi_sel, syscon_endis_e status)
 {
-    if (status == APT_DEF_ENABLE) {
-        H_SYSCON->EXIER = exi_sel;
-    }
-    else {
-        H_SYSCON->EXIDR = exi_sel;
-    }
+	if (status == ENABLE) {
+		H_SYSCON->EXIER = 1ul<<exi_sel;
+	}
+	else {
+		H_SYSCON->EXIDR = 1ul<<exi_sel;
+	}
 
-    return H_SYSCON->EXIMR;
+	return H_SYSCON->EXIMR;
 }
 
 /**
   \brief       Clear EXI pending 
-  \param[in]   iwdt_ovt overflow time config
-  \param[in]   iwdt_wnd alarm window time config
+  \param[in]   exi_sel: exi event to be clear
   \return      None
 */
-void dw_syscon_clear_exi_pending(uint32_t exi_sel)
+void csi_syscon_clear_exi_pending(exi_event_e exi_sel)
 {
-    H_SYSCON->EXICR = exi_sel;
+	H_SYSCON->EXICR = 1ul<<exi_sel;
 }
 
 /**
@@ -581,14 +491,14 @@ void dw_syscon_clear_exi_pending(uint32_t exi_sel)
   \param[in]   status:   raw(T)/masked(F) pending bit select(APT_DEF_DISABLE is default)
   \return      corresponding bit of pending according to int_sel
 */
-uint32_t dw_syscon_get_exi_status(uint32_t exi_sel, bool status)
+uint32_t csi_syscon_exi_get_status(exi_event_e exi_sel, syscon_endis_e status)
 {
-    if (status == APT_DEF_ENABLE) {
-        return ((H_SYSCON->EXIRS) & exi_sel);
-    }
-    else {
-        return ((H_SYSCON->EXICR) & exi_sel);
-    }
+	if (status == ENABLE) {
+		return ((H_SYSCON->EXIRS) & (1ul<<exi_sel));
+	}
+	else {
+		return ((H_SYSCON->EXICR) & (1ul<<exi_sel));
+	}
 }
 
 /**
@@ -596,9 +506,9 @@ uint32_t dw_syscon_get_exi_status(uint32_t exi_sel, bool status)
   \param[in]   exi_sel  exi line to be triggered
   \return      None
 */
-void dw_syscon_software_trigger_exi(uint32_t exi_sel)
+void csi_syscon_software_trigger_exi(exi_event_e exi_sel)
 {
-    H_SYSCON->EXIAR = exi_sel;
+	H_SYSCON->EXIAR = 1ul<<exi_sel;
 }
 
 
@@ -606,9 +516,11 @@ void dw_syscon_software_trigger_exi(uint32_t exi_sel)
   \brief       Reset source information
   \return      reset_src_t 
 */
-reset_src_t dw_syscon_get_reset_source_status(void)
+reset_log_t csi_syscon_reset_log_get_status(void)
 {
-    return (reset_src_t)(H_SYSCON->RSR);
+	reset_log_t rstlog;
+	rstlog.w = (H_SYSCON->RSR);
+	return rstlog;
 }
 
 /**
@@ -617,16 +529,16 @@ reset_src_t dw_syscon_get_reset_source_status(void)
   \param[in]   status:   enable/disable
   \return      current masking status
 */
-uint32_t dw_syscon_set_interrupt_switch(uint32_t int_sel, bool status)
+uint32_t csi_syscon_interrupt_set_switch(syscon_event_e int_sel, syscon_endis_e status)
 {
-    if (status == APT_DEF_ENABLE) {
-        H_SYSCON->IECR = int_sel;
-    }
-    else {
-        H_SYSCON->IDCR = int_sel;
-    }
+	if (status == ENABLE) {
+		H_SYSCON->IECR = 1ul<<int_sel;
+	}
+	else {
+		H_SYSCON->IDCR = 1ul<<int_sel;
+	}
 
-    return H_SYSCON->IMSR;
+	return H_SYSCON->IMSR;
 }
 
 /**
@@ -634,9 +546,9 @@ uint32_t dw_syscon_set_interrupt_switch(uint32_t int_sel, bool status)
   \param[in]   int_sel:  interrupt to be clear
   \return      None
 */
-void dw_syscon_clear_interrupt_pending(uint32_t int_sel)
+void csi_syscon_interrupt_clear_pending(syscon_event_e int_sel)
 {
-    H_SYSCON->ICR = int_sel;
+	H_SYSCON->ICR = 1ul<<int_sel;
 }
 
 /**
@@ -645,14 +557,14 @@ void dw_syscon_clear_interrupt_pending(uint32_t int_sel)
   \param[in]   status:   raw(T)/masked(F) pending bit select
   \return      corresponding bit of pending according to int_sel
 */
-uint32_t dw_syscon_get_interrupt_status(uint32_t int_sel, bool status)
+uint32_t csi_syscon_interrupt_get_status(syscon_event_e int_sel, syscon_endis_e status)
 {
-    if (status == APT_DEF_ENABLE) {
-        return ((H_SYSCON->RISR) & int_sel);
-    }
-    else {
-        return ((H_SYSCON->ISR) & int_sel);
-    }
+	if (status == ENABLE) {
+		return ((H_SYSCON->RISR) & (1ul<<int_sel));
+	}
+	else {
+		return ((H_SYSCON->ISR) & (1ul<<int_sel));
+	}
 }
 
 
@@ -661,23 +573,23 @@ uint32_t dw_syscon_get_interrupt_status(uint32_t int_sel, bool status)
   \param[in]   info_sel information to be load
   \return      result stored in flash
 */
-uint32_t dw_syscon_get_project_information(prj_infor_t info_sel)
+uint32_t csi_syscon_get_prj_infor(prj_infor_e info_sel)
 {
-    switch(info_sel)
-    {
-        case CINF0:
-            return H_SYSCON->CINF0;
-            break;
-        case CINF1:
-            return H_SYSCON->CINF1;
-            break;
-        case FINF0:
-            return H_SYSCON->FINF0;
-            break;
-        case FINF1:
-            return H_SYSCON->FINF1;
-            break;
-    }
+	switch(info_sel)
+	{
+		case CINF0:
+			return H_SYSCON->CINF0;
+			break;
+		case CINF1:
+			return H_SYSCON->CINF1;
+			break;
+		case FINF0:
+			return H_SYSCON->FINF0;
+			break;
+		case FINF1:
+			return H_SYSCON->FINF1;
+			break;
+	}
 	
 	return 0;
 }
@@ -687,46 +599,47 @@ uint32_t dw_syscon_get_project_information(prj_infor_t info_sel)
   \param[in]   info_sel information to be load
   \return      result of check
 */
-uint32_t dw_syscon_get_protection_information(prot_infor_t info_sel)
+prot_ret_e csi_syscon_get_prot_infor(prot_infor_e info_sel)
 {
-    switch(info_sel)
-    {
-        case RDP:
-            if ((H_SYSCON->OPT0) & (1ul<<27)) {
-                return APT_DEF_ENABLE;
-            }
-            else {
-                return APT_DEF_DISABLE;
-            }
-            break;
-        case DBP:
-            if ((H_SYSCON->OPT0) & (1ul<<8)) {
-                return APT_DEF_ENABLE;
-            }
-            else {
-                return APT_DEF_DISABLE;
-            }
-            break;
-        case HDP:
-            if ((H_SYSCON->OPT0) & (1ul<<16)) {
-                return 1;
-            }
-            else if ((H_SYSCON->OPT0) & (1ul<<17)) {
-                return 2;
-            }
-            else if ((H_SYSCON->OPT0) & (1ul<<18)) {
-                return 3;
-            }
-            else if ((H_SYSCON->OPT0) & (1ul<<19)) {
-                return 4;
-            }
-            else {
-                return APT_DEF_DISABLE;
-            }
-            break;
-    }
+	prot_ret_e result;
+	switch(info_sel)
+	{
+		case RDP:
+			if ((H_SYSCON->OPT0) & (1ul<<27)) {
+				result = RDP_ON;
+			}
+			else {
+				result = RDP_OFF;
+			}
+			break;
+		case DBP:
+			if ((H_SYSCON->OPT0) & (1ul<<8)) {
+				result = DBP_ON;
+			}
+			else {
+				result = DBP_OFF;
+			}
+			break;
+		case HDP:
+			if ((H_SYSCON->OPT0) & (1ul<<16)) {
+				result = HDP_ALL;
+			}
+			else if ((H_SYSCON->OPT0) & (1ul<<17)) {
+				result = HDP_1K;
+			}
+			else if ((H_SYSCON->OPT0) & (1ul<<18)) {
+				result = HDP_2K;
+			}
+			else if ((H_SYSCON->OPT0) & (1ul<<19)) {
+				result = HDP_4K;
+			}
+			else {
+				result = HDP_OFF;
+			}
+			break;
+	}
 	
-	return 0;
+	return result;
 }
 
 /**
@@ -734,17 +647,16 @@ uint32_t dw_syscon_get_protection_information(prot_infor_t info_sel)
   \param[in]   status: enable/disable status
   \return      None
 */
-void dw_syscon_set_hfosc_switch(bool status)
+void csi_syscon_hfosc_set_switch(syscon_endis_e status)
 {
-    if (status == APT_DEF_ENABLE) {
-        H_SYSCON->CLCR |= (1ul<<20);
-        while (!((H_SYSCON->CLCR) & (1ul<<21)));
+	if (status == ENABLE) {
+		H_SYSCON->CLCR |= (1ul<<20);
+		while (!((H_SYSCON->CLCR) & (1ul<<21)));
+	}
+	else {
+		H_SYSCON->CLCR &= ~(1ul<<20);
 
-    }
-    else {
-        H_SYSCON->CLCR &= ~(1ul<<20);
-
-    }
+	}
 }
 
 /**
@@ -752,9 +664,9 @@ void dw_syscon_set_hfosc_switch(bool status)
   \param[in]   clo_sel: clo source selection
   \return      None
 */
-void dw_syscon_clo_config(clo_src_t clo_sel)
+void csi_syscon_clo_config(clo_src_e clo_sel)
 {
-    H_SYSCON->CLCR = ((H_SYSCON->CLCR) & ~(0xf<<16))|(clo_sel<<16);
+	H_SYSCON->CLCR = ((H_SYSCON->CLCR) & ~(0xf<<16))|(clo_sel<<16);
 }
 
 

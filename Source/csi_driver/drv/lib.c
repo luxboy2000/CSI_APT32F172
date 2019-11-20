@@ -39,8 +39,8 @@ static void _mdelay(void)
     uint32_t load = csi_coret_get_load();
     uint32_t start = csi_coret_get_value();
     uint32_t cur;
-    uint32_t cnt = (SYSTEM_CLOCK / 1000);
-
+    //uint32_t cnt = (SYSTEM_CLOCK / 1000);
+	uint32_t cnt = (sysclk_cfg._cur_hclk_freq / 1000);
     while (1) {
         cur = csi_coret_get_value();
 

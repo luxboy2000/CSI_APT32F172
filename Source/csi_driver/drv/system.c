@@ -17,6 +17,7 @@
 
 #include <csi_config.h>
 #include "soc.h"
+#include "apt_syscon.h"
 #include "csi_core.h"
 
 #ifndef CONFIG_SYSTICK_HZ
@@ -26,11 +27,13 @@
 /*----------------------------------------------------------------------------
   System Core Clock Variable
  *----------------------------------------------------------------------------*/
-int SystemCoreClock = SYSTEM_CLOCK;  /* System Core Clock Frequency      */
+//int SystemCoreClock = SYSTEM_CLOCK;  /* System Core Clock Frequency      */
+int SystemCoreClock = SYSTEM_CLOCK_FREQ;  /* System Core Clock Frequency      */
+
 
 void SystemCoreClockUpdate(void)
 {
-    SystemCoreClock = SYSTEM_CLOCK;
+    SystemCoreClock = sysclk_cfg._cur_hclk_freq;
 }
 
 /**
@@ -43,7 +46,10 @@ void SystemInit(void)
 {
     //__set_VBR((uint32_t) & (__Vectors));
     /* Here we may setting exception vector, MGU, cache, and so on. */
-
+#ifdef CONFIG_IWDT_NONE
+	csi_syscon_iwdt_set_switch(DISABLE);
+#endif
+	
 #ifdef CONFIG_KERNEL_NONE
 #ifdef CONFIG_SYSTEM_SECURE
     __set_PSR(0xc0000140);
@@ -53,13 +59,15 @@ void SystemInit(void)
 #endif
 
 #ifndef CONFIG_KERNEL_NONE
-    csi_coret_config(SYSTEM_CLOCK / CONFIG_SYSTICK_HZ, CORET_IRQn);    //10ms
+    csi_coret_config(sysclk_cfg._cur_hclk_freq / CONFIG_SYSTICK_HZ, CORET_IRQn);    //10ms
     csi_vic_enable_irq(CORET_IRQn);
 #else
-    csi_coret_config(SYSTEM_CLOCK / CONFIG_SYSTICK_HZ, CORET_IRQn);    //for mdelay()
+    csi_coret_config(sysclk_cfg._cur_hclk_freq / CONFIG_SYSTICK_HZ, CORET_IRQn);    //for mdelay()
 #endif
 
-    SystemCoreClock = SYSTEM_CLOCK;
+
+	csi_syscon_systemclock_config(sysclk_cfg._cur_sysclk, sysclk_cfg._cur_hclk_freq, sysclk_cfg._cur_pclk_freq);
+    SystemCoreClock = sysclk_cfg._cur_hclk_freq;
 
     //extern void mm_heap_initialize(void);
     //mm_heap_initialize();
