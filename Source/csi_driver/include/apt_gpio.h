@@ -44,27 +44,29 @@ typedef struct {
     __IOM uint32_t IECR;            /*!< 0x02C: Interrupt Enable/disable register */
     __OM  uint32_t IEER;            /*!< 0x030: Interrupt Enable register */
     __OM  uint32_t IEDR;            /*!< 0x034: Interrupt Disable register*/
-} APT_GPIO_Reg_t, *gpio_handle_t;
+} APT_GPIO_Reg_t, *gpio_reg_ptr;
 
 typedef struct {
     __IOM uint32_t IGRPL;           /*!< 0x000: Interrupt group low register*/
     __IOM uint32_t IGRPH;           /*!< 0x004: Interrupt group high register*/
-} APT_IGRP_Reg_t, *igrp_handle_t;
+} APT_IGRP_Reg_t, *igrp_reg_ptr;
 
+
+typedef void *gpio_port_handle_t;
 
 typedef void (*gpio_event_cb_t)(exi_event_e event);   ///< GPIO EXI Event call back.
 
-extern gpio_handle_t H_GPIOA0;
-extern gpio_handle_t H_GPIOA1;
-extern gpio_handle_t H_GPIOB0;
-extern gpio_handle_t H_GPIOC0;
-extern gpio_handle_t H_GPIOD0;
-extern igrp_handle_t H_EXIGRP;
+extern gpio_reg_ptr H_GPIOA0;
+extern gpio_reg_ptr H_GPIOA1;
+extern gpio_reg_ptr H_GPIOB0;
+extern gpio_reg_ptr H_GPIOC0;
+extern gpio_reg_ptr H_GPIOD0;
+extern igrp_reg_ptr H_EXIGRP;
 
 
 /*----- GPIO SPEC -----*/
 typedef enum {
-    PA0_0   = 0x10,
+    PA0_0   = 0x00,
     PA0_1       ,
     PA0_2       ,
     PA0_3       ,
@@ -80,19 +82,19 @@ typedef enum {
     PA0_13      ,
     PA0_14      ,
     PA0_15      ,
-    PA1_0   = 0x20,
+    PA1_0   = 0x10,
     PA1_1       ,
     PA1_2       ,
     PA1_3       ,
     PA1_4       ,
     PA1_5       ,
-    PB0_0   = 0x30,
+    PB0_0   = 0x20,
     PB0_1       ,
-    PC0_0   = 0x40,
+    PC0_0   = 0x30,
     PC0_1       ,
     PC0_2       ,
     PC0_3       ,
-    PD0_0   = 0x50,
+    PD0_0   = 0x40,
     PD0_1       ,
 } gpio_pin_name;
 
@@ -197,12 +199,12 @@ int32_t csi_gpio_exi_cb_init (gpio_event_cb_t cb);
    by a struct. The pull-up/pull-down resistor status on the GPIO also should be configured
    as well.
   
-   @param[in]  port_idx    target port name to be configured
+   @param[in]  handle      handle of target port to be configured
    @param[in]  conr_val    expected control register value to be set
    @param[in]  pullst      pull-up/pull-down config
    @return    error code
  */
-int32_t csi_gpio_port_config(gpio_port_name port_idx, gpio_conr_type conr_val, uint32_t pullst);
+int32_t csi_gpio_port_config(gpio_port_handle_t handle, uint64_t conr_val, uint32_t pullst);
 
 /**
   @brief       Write value to the port (multi-bits)
@@ -210,7 +212,7 @@ int32_t csi_gpio_port_config(gpio_port_name port_idx, gpio_conr_type conr_val, u
   @param[in]   value     the value to be set
   @return      none
 */
-__ALWAYS_INLINE void csi_gpio_port_write(gpio_handle_t handle, uint32_t value)
+__ALWAYS_INLINE void csi_gpio_port_write(gpio_reg_ptr handle, uint32_t value)
 {
     handle->WODR = value;
 }
@@ -221,7 +223,7 @@ __ALWAYS_INLINE void csi_gpio_port_write(gpio_handle_t handle, uint32_t value)
   @param[in]   mask      the pin to be set (0-ignored)
   @return      none
 */
-__ALWAYS_INLINE void csi_gpio_port_set(gpio_handle_t handle, uint32_t mask)
+__ALWAYS_INLINE void csi_gpio_port_set(gpio_reg_ptr handle, uint32_t mask)
 {
     handle->SODR = mask;
 }
@@ -232,7 +234,7 @@ __ALWAYS_INLINE void csi_gpio_port_set(gpio_handle_t handle, uint32_t mask)
   @param[in]   mask      the pin to be clear (0-ignored)
   @return      none
 */
-__ALWAYS_INLINE void csi_gpio_port_clear(gpio_handle_t handle, uint32_t mask)
+__ALWAYS_INLINE void csi_gpio_port_clear(gpio_reg_ptr handle, uint32_t mask)
 {
     handle->CODR = mask;
 }
@@ -243,7 +245,7 @@ __ALWAYS_INLINE void csi_gpio_port_clear(gpio_handle_t handle, uint32_t mask)
   @param[in]   mask      the pin to be masked
   @return      read back value
 */
-__ALWAYS_INLINE uint32_t csi_gpio_port_read(gpio_handle_t handle, uint32_t mask)
+__ALWAYS_INLINE uint32_t csi_gpio_port_read(gpio_reg_ptr handle, uint32_t mask)
 {
     return ((handle->PSDR) & mask);
 }
@@ -287,7 +289,7 @@ void csi_gpio_pin_outputmode_config(gpio_pin_name gpio_pin, gpio_output_mode_e p
   @param[in]   pin_num   pin number in port
   @return      none
 */
-__ALWAYS_INLINE void csi_gpio_pin_set(gpio_handle_t handle, uint32_t pin_num)
+__ALWAYS_INLINE void csi_gpio_pin_set(gpio_reg_ptr handle, uint32_t pin_num)
 {
     handle->SODR = (1ul<<pin_num);
 }
@@ -298,7 +300,7 @@ __ALWAYS_INLINE void csi_gpio_pin_set(gpio_handle_t handle, uint32_t pin_num)
   @param[in]   pin_num   pin number in port
   @return      none
 */
-__ALWAYS_INLINE void csi_gpio_pin_clear(gpio_handle_t handle, uint32_t pin_num)
+__ALWAYS_INLINE void csi_gpio_pin_clear(gpio_reg_ptr handle, uint32_t pin_num)
 {
     handle->CODR = (1ul<<pin_num);
 }

@@ -31,54 +31,96 @@
             }                                       \
         } while (0)
 
-/// GPIOA0 resource handler
-gpio_handle_t H_GPIOA0  = (APT_GPIO_Reg_t   *)APT_GPIOA0_BASE;
+/// GPIOA0 register direct access pointer
+gpio_reg_ptr H_GPIOA0  = (APT_GPIO_Reg_t   *)APT_GPIOA0_BASE;
 
-/// GPIOA1 resource handler
-gpio_handle_t H_GPIOA1  = (APT_GPIO_Reg_t   *)APT_GPIOA1_BASE;
+/// GPIOA1 register direct access pointer
+gpio_reg_ptr H_GPIOA1  = (APT_GPIO_Reg_t   *)APT_GPIOA1_BASE;
 
-/// GPIOB0 resource handler
-gpio_handle_t H_GPIOB0  = (APT_GPIO_Reg_t   *)APT_GPIOB0_BASE;
+/// GPIOB0 register direct access pointer
+gpio_reg_ptr H_GPIOB0  = (APT_GPIO_Reg_t   *)APT_GPIOB0_BASE;
 
-/// GPIOC0 resource handler
-gpio_handle_t H_GPIOC0  = (APT_GPIO_Reg_t   *)APT_GPIOC0_BASE;
+/// GPIOC0 register direct access pointer
+gpio_reg_ptr H_GPIOC0  = (APT_GPIO_Reg_t   *)APT_GPIOC0_BASE;
 
-/// GPIOD0 resource handler
-gpio_handle_t H_GPIOD0  = (APT_GPIO_Reg_t   *)APT_GPIOD0_BASE;
+/// GPIOD0 register direct access pointer
+gpio_reg_ptr H_GPIOD0  = (APT_GPIO_Reg_t   *)APT_GPIOD0_BASE;
 
-/// EXI group config resource handler
-igrp_handle_t H_EXIGRP  = (APT_IGRP_Reg_t   *)APT_EXIGRP_BASE;
+/// EXI group config register direct access pointer
+igrp_reg_ptr H_EXIGRP  = (APT_IGRP_Reg_t   *)APT_EXIGRP_BASE;
 
+/// type define for GPIO resource
+typedef struct {
+  uint32_t base;              ///< base address of resource
+  gpio_conr_type gpio_config; ///< port control register
+  uint32_t pullst;            ///< port pullup/down control
+} dw_gpio_private_t;
 
 /// Declaration of variable to store EXI call-back routine pointer
 gpio_event_cb_t gpio_exi_cb = NULL;
 
-static gpio_conr_type gpio_pa0_config = {.CONR=0ull}; ///< GPIOA0 CONR mirror stores in ram
-static gpio_conr_type gpio_pa1_config = {.CONR=0ull}; ///< GPIOA1 CONR mirror stores in ram
-static gpio_conr_type gpio_pb0_config = {.CONR=0ull}; ///< GPIOB0 CONR mirror stores in ram
-static gpio_conr_type gpio_pc0_config = {.CONR=0ull}; ///< GPIOC0 CONR mirror stores in ram
-static gpio_conr_type gpio_pd0_config = {.CONR=0ull}; ///< GPIOD0 CONR mirror stores in ram
+//static gpio_conr_type gpio_pa0_config = {.CONR=0ull}; ///< GPIOA0 CONR mirror stores in ram
+//static gpio_conr_type gpio_pa1_config = {.CONR=0ull}; ///< GPIOA1 CONR mirror stores in ram
+//static gpio_conr_type gpio_pb0_config = {.CONR=0ull}; ///< GPIOB0 CONR mirror stores in ram
+//static gpio_conr_type gpio_pc0_config = {.CONR=0ull}; ///< GPIOC0 CONR mirror stores in ram
+//static gpio_conr_type gpio_pd0_config = {.CONR=0ull}; ///< GPIOD0 CONR mirror stores in ram
+static dw_gpio_private_t gpio_intance[CONFIG_GPIO_NUM]; ///< GPIO port resource
 
 //
 // Functions
 //
 
 
-static uint32_t gpio_pin_char_set(uint32_t target, uint32_t pin_idx, uint32_t value)
-{
-    uint32_t cur_val = target;
-    cur_val &= ~(3ul<<pin_idx);
-    cur_val |= (value<<pin_idx);
-    return cur_val;
-}
-
-static void gpio_set_pin_con (gpio_conr_type* gpio_config, uint32_t pin_idx, gpio_mode_e pin_mode)
-{
-	(*gpio_config).CONR &= ~(0xful<<pin_idx*4);
-	(*gpio_config).CONR |= (pin_mode << pin_idx*4);
-}
 
 ////////////////////////////////// Public //////////////////////////////////////
+/**
+   @brief GPIO port handler inintialization
+ 
+   Initialize port instance to be the default reset status and assign
+   access register pointer to the resource according to port index
+   
+   @param[in]   idx  GPIO port to be initialized: PORTA0, PORTA1 ... 
+   @return      resource handler of specific gpio port
+ */ 
+gpio_port_handle_t csi_gpio_initialize (int32_t idx)
+{
+  if (idx<0 || idx>CONFIG_GPIO_NUM) {
+    return NULL;
+  }
+
+  dw_gpio_private_t *gpio_priv = &gpio_intance[idx];
+
+  // base address initial...
+  switch (idx) {
+    case 0: // PORTA0
+      gpio_priv->base = APT_GPIOA0_BASE;
+      gpio_priv->gpio_config.CONR = 0ull;	// reset value of pa0
+      gpio_priv->pullst = 0ul;
+      break;
+    case 1: // PORTA1
+      gpio_priv->base = APT_GPIOA1_BASE;
+      gpio_priv->gpio_config.CONR = 0ull;	// reset value of pa1
+      gpio_priv->pullst = 0ul;
+      break;
+    case 2: // PORTB0
+      gpio_priv->base = APT_GPIOB0_BASE;
+      gpio_priv->gpio_config.CONR = 0ull;	// reset value of pb0
+      gpio_priv->pullst = 0ul;
+      break;
+    case 3: // PORTC0
+      gpio_priv->base = APT_GPIOC0_BASE;
+      gpio_priv->gpio_config.CONR = 0ull;	// reset value of pc0
+      gpio_priv->pullst = 0ul;
+      break;
+    case 4: // PORTD0
+      gpio_priv->base = APT_GPIOD0_BASE;
+      gpio_priv->gpio_config.CONR = 0ull;	// reset value of pd0
+      gpio_priv->pullst = 0ul;
+      break;
+  }
+
+  return (gpio_port_handle_t)gpio_priv;
+}
 
 /**
    @brief ISR call-back registration
@@ -104,48 +146,24 @@ int32_t csi_gpio_exi_cb_init (gpio_event_cb_t cb)
    by a struct. The pull-up/pull-down resistor status on the GPIO also should be configured
    as well.
   
-   @param[in]  port_idx    target port name to be configured
+   @param[in]  handle      handle of target port to be configured
    @param[in]  conr_val    expected control register value to be set
    @param[in]  pullst      pull-up/pull-down config
    @return    error code
  */
-int32_t csi_gpio_port_config(gpio_port_name port_idx, gpio_conr_type conr_val, uint32_t pullst)
+int32_t csi_gpio_port_config(gpio_port_handle_t handle, uint64_t conr_val, uint32_t pullst)
 {
-    switch (port_idx) {
-        case PORTA0:
-            gpio_pa0_config = conr_val;
-            H_GPIOA0->CONLR = gpio_pa0_config.w.CONLR;
-            H_GPIOA0->CONHR = gpio_pa0_config.w.CONHR;
-            H_GPIOA0->PUDR = pullst;
-            break;
-        case PORTA1:
-            gpio_pa1_config = conr_val;
-            H_GPIOA1->CONLR = gpio_pa1_config.w.CONLR;
-            H_GPIOA1->CONHR = gpio_pa1_config.w.CONHR;
-            H_GPIOA1->PUDR = pullst;
-            break;
-        case PORTB0:
-            gpio_pb0_config = conr_val;
-            H_GPIOB0->CONLR = gpio_pb0_config.w.CONLR;
-            H_GPIOB0->CONHR = gpio_pb0_config.w.CONHR;
-            H_GPIOB0->PUDR = pullst;
-            break;
-        case PORTC0:
-            gpio_pc0_config = conr_val;
-            H_GPIOC0->CONLR = gpio_pc0_config.w.CONLR;
-            H_GPIOC0->CONHR = gpio_pc0_config.w.CONHR;
-            H_GPIOC0->PUDR = pullst;
-            break;
-        case PORTD0:
-            gpio_pd0_config = conr_val;
-            H_GPIOD0->CONLR = gpio_pd0_config.w.CONLR;
-            H_GPIOD0->CONHR = gpio_pd0_config.w.CONHR;
-            H_GPIOD0->PUDR = pullst;
-            break;
-        default:
-            return ERR_GPIO(DRV_ERROR_UNSUPPORTED);
-    }
+    GPIO_NULL_PARAM_CHK(handle);
 
+    dw_gpio_private_t *gpio_priv = (dw_gpio_private_t *)handle;
+    gpio_reg_ptr addr = (gpio_reg_ptr)(gpio_priv->base);
+	
+	gpio_priv->gpio_config.CONR = conr_val;
+	
+	addr->CONHR = gpio_priv->gpio_config.w.CONHR;
+	addr->CONLR = gpio_priv->gpio_config.w.CONLR;
+	addr->PUDR = pullst;
+	
     return 0;
 }
 
@@ -162,34 +180,17 @@ int32_t csi_gpio_pin_func_config(gpio_pin_name gpio_pin, gpio_mode_e pin_mode)
     uint32_t port_idx = (gpio_pin>>4);
     uint32_t pin_idx = (gpio_pin & 0xful);
     
-    switch (port_idx) {
-        case 1: // PORTA0
-            gpio_set_pin_con (&gpio_pa0_config,pin_idx,pin_mode);
-            H_GPIOA0->CONLR = gpio_pa0_config.w.CONLR;
-            H_GPIOA0->CONHR = gpio_pa0_config.w.CONHR;
-            break;
-        case 2: // PORTA1
-            gpio_set_pin_con (&gpio_pa1_config,pin_idx,pin_mode);
-            H_GPIOA1->CONLR = gpio_pa1_config.w.CONLR;
-            H_GPIOA1->CONHR = gpio_pa1_config.w.CONHR;
-            break;
-        case 3: // PORTB0
-            gpio_set_pin_con (&gpio_pb0_config,pin_idx,pin_mode);
-            H_GPIOB0->CONLR = gpio_pb0_config.w.CONLR;
-            H_GPIOB0->CONHR = gpio_pb0_config.w.CONHR;
-            break;
-        case 4: // PORTC0
-            gpio_set_pin_con (&gpio_pc0_config,pin_idx,pin_mode);
-            H_GPIOC0->CONLR = gpio_pc0_config.w.CONLR;
-            H_GPIOC0->CONHR = gpio_pc0_config.w.CONHR;
-            break;
-        case 5: // PORTD0
-            gpio_set_pin_con (&gpio_pd0_config,pin_idx,pin_mode);
-            H_GPIOD0->CONLR = gpio_pd0_config.w.CONLR;
-            H_GPIOD0->CONHR = gpio_pd0_config.w.CONHR;
-            break;
-    }
-
+	dw_gpio_private_t *gpio_priv = &gpio_intance[port_idx];
+    gpio_reg_ptr addr = (gpio_reg_ptr)(gpio_priv->base);
+	gpio_conr_type gpio_conr_priv = gpio_priv->gpio_config;
+	
+	gpio_conr_priv.CONR &= ~(0xfull<<pin_idx*4);
+	gpio_conr_priv.CONR |= (pin_mode << pin_idx*4);
+	
+	gpio_priv->gpio_config = gpio_conr_priv;
+	addr->CONHR = gpio_priv->gpio_config.w.CONHR;
+	addr->CONLR = gpio_priv->gpio_config.w.CONLR;
+	
     return 0;
 } 
 
@@ -204,23 +205,14 @@ void csi_gpio_pin_pull_config(gpio_pin_name gpio_pin, gpio_pull_e pin_mode)
     uint32_t port_idx = (gpio_pin>>4);
     uint32_t pin_idx = (gpio_pin & 0xful);
 
-    switch (port_idx) {
-        case 1: // PORTA0
-            H_GPIOA0->PUDR = gpio_pin_char_set(H_GPIOA0->PUDR, pin_idx, (uint32_t)pin_mode);
-            break;
-        case 2: // PORTA1
-            H_GPIOA1->PUDR = gpio_pin_char_set(H_GPIOA1->PUDR, pin_idx, (uint32_t)pin_mode);
-            break;
-        case 3: // PORTB0
-            H_GPIOB0->PUDR = gpio_pin_char_set(H_GPIOB0->PUDR, pin_idx, (uint32_t)pin_mode);
-            break;
-        case 4: // PORTC0
-            H_GPIOC0->PUDR = gpio_pin_char_set(H_GPIOC0->PUDR, pin_idx, (uint32_t)pin_mode);
-            break;
-        case 5: // PORTD0
-            H_GPIOD0->PUDR = gpio_pin_char_set(H_GPIOD0->PUDR, pin_idx, (uint32_t)pin_mode);
-            break;
-    }
+	dw_gpio_private_t *gpio_priv = &gpio_intance[port_idx];
+    gpio_reg_ptr addr = (gpio_reg_ptr)(gpio_priv->base);
+	
+	uint32_t pudr_priv = addr->PUDR;
+	pudr_priv &= ~(3ul<<pin_idx);
+    pudr_priv |= (pin_mode<<pin_idx*2);
+	
+	addr->PUDR = pudr_priv;
 
 } 
 
@@ -235,24 +227,15 @@ void csi_gpio_pin_speed_config(gpio_pin_name gpio_pin, gpio_char_e pin_mode)
     uint32_t port_idx = (gpio_pin>>4);
     uint32_t pin_idx = (gpio_pin & 0xful);
 
-    switch (port_idx) {
-        case 1: // PORTA0
-            H_GPIOA0->DSCR = gpio_pin_char_set(H_GPIOA0->DSCR, pin_idx, (uint32_t)pin_mode);
-            break;
-        case 2: // PORTA1
-            H_GPIOA1->DSCR = gpio_pin_char_set(H_GPIOA1->DSCR, pin_idx, (uint32_t)pin_mode);
-            break;
-        case 3: // PORTB0
-            H_GPIOB0->DSCR = gpio_pin_char_set(H_GPIOB0->DSCR, pin_idx, (uint32_t)pin_mode);
-            break;
-        case 4: // PORTC0
-            H_GPIOC0->DSCR = gpio_pin_char_set(H_GPIOC0->DSCR, pin_idx, (uint32_t)pin_mode);
-            break;
-        case 5: // PORTD0
-            H_GPIOD0->DSCR = gpio_pin_char_set(H_GPIOD0->DSCR, pin_idx, (uint32_t)pin_mode);
-            break;
-    }
-
+	dw_gpio_private_t *gpio_priv = &gpio_intance[port_idx];
+    gpio_reg_ptr addr = (gpio_reg_ptr)(gpio_priv->base);
+	
+	uint32_t dscr_priv = addr->DSCR;
+	dscr_priv &= ~(3ul<<pin_idx);
+    dscr_priv |= (pin_mode<<pin_idx*2);
+	
+	addr->DSCR = dscr_priv;
+	
 } 
 
 
@@ -267,44 +250,15 @@ void csi_gpio_pin_outputmode_config(gpio_pin_name gpio_pin, gpio_output_mode_e p
     uint32_t port_idx = (gpio_pin>>4);
     uint32_t pin_idx = (gpio_pin & 0xful);
 
-    switch (port_idx) {
-        case 1: // PORTA0
-            if (pin_mode == GPIO_PUSHPULL) {
-                H_GPIOA0->OMCR &= ~(1ul<<pin_idx);
-            } else {
-                H_GPIOA0->OMCR |= 1ul<<pin_idx;
-            }
-            break;
-        case 2: // PORTA1
-            if (pin_mode == GPIO_PUSHPULL) {
-                H_GPIOA1->OMCR &= ~(1ul<<pin_idx);
-            } else {
-                H_GPIOA1->OMCR |= 1ul<<pin_idx;
-            }
-            break;
-        case 3: // PORTB0
-            if (pin_mode == GPIO_PUSHPULL) {
-                H_GPIOB0->OMCR &= ~(1ul<<pin_idx);
-            } else {
-                H_GPIOB0->OMCR |= 1ul<<pin_idx;
-            }
-            break;
-        case 4: // PORTC0
-            if (pin_mode == GPIO_PUSHPULL) {
-                H_GPIOC0->OMCR &= ~(1ul<<pin_idx);
-            } else {
-                H_GPIOC0->OMCR |= 1ul<<pin_idx;
-            }
-            break;
-        case 5: // PORTD0
-            if (pin_mode == GPIO_PUSHPULL) {
-                H_GPIOD0->OMCR &= ~(1ul<<pin_idx);
-            } else {
-                H_GPIOD0->OMCR |= 1ul<<pin_idx;
-            }
-            break;
-    }
-
+	dw_gpio_private_t *gpio_priv = &gpio_intance[port_idx];
+    gpio_reg_ptr addr = (gpio_reg_ptr)(gpio_priv->base);
+	
+	uint32_t omcr_priv = addr->OMCR;
+	omcr_priv &= ~(1ul<<pin_idx);
+    omcr_priv |= (pin_mode<<pin_idx);
+	
+	addr->OMCR = omcr_priv;
+	
 } 
 
 /**
@@ -326,29 +280,12 @@ void csi_gpio_pin_exi_set(gpio_pin_name gpio_pin, bool enable)
         }
     }
 
-    switch (port_idx) {
-    case 1: // PORTA0
-        H_GPIOA0->IEER = enable<<pin_idx;
-        H_GPIOA0->IEDR = (~enable)<<pin_idx;
-        break;
-    case 2: // PORTA1
-        H_GPIOA1->IEER = enable<<pin_idx;
-        H_GPIOA1->IEDR = (~enable)<<pin_idx;
-        break;
-    case 3: // PORTB0
-        H_GPIOB0->IEER = enable<<pin_idx;
-        H_GPIOB0->IEDR = (~enable)<<pin_idx;
-        break;
-    case 4: // PORTC0
-        H_GPIOC0->IEER = enable<<pin_idx;
-        H_GPIOC0->IEDR = (~enable)<<pin_idx;
-        break;
-    case 5: // PORTD0
-        H_GPIOD0->IEER = enable<<pin_idx;
-        H_GPIOD0->IEDR = (~enable)<<pin_idx;
-        break;
-    }
-
+	dw_gpio_private_t *gpio_priv = &gpio_intance[port_idx];
+    gpio_reg_ptr addr = (gpio_reg_ptr)(gpio_priv->base);
+	
+	addr->IEER = enable<<pin_idx;
+	addr->IEDR = (~enable)<<pin_idx;
+	
 }
 
 

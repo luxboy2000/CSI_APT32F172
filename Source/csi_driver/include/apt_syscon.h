@@ -124,9 +124,9 @@ typedef struct {
     __IOM uint32_t PROT17;                  /*! Prot17*/
     __IOM uint32_t PROT18;                  /*! Prot18*/
     __IOM uint32_t PROT19;                  /*! Prot19*/
-} APT_SYSCON_Reg_t, *syscon_handle_t;
+} APT_SYSCON_Reg_t, *syscon_reg_ptr;
 
-extern syscon_handle_t H_SYSCON;
+extern syscon_reg_ptr H_SYSCON;
 
 
 /*----- EMOSC mode -----*/
@@ -352,7 +352,6 @@ int32_t csi_syscon_systemclock_config(syscon_sysclk_e sysclk_setup, uint32_t hcl
 
 /**
   \brief       Enable/disable pclk of individual peripheral
-  \param[in]   handle   syscon to be operate
   \param[in]   status   en/dis operation
   \param[in]   pclk_sel individual pclk target on PCLK0
                         defined as: PCLK_ENDIS_ADC/PCLK_ENDIS_UART0 ...

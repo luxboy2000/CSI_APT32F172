@@ -31,7 +31,7 @@
 			}                                       \
 		} while (0)
 
-syscon_handle_t H_SYSCON  = (APT_SYSCON_Reg_t   *)APT_SYSCON_BASE;
+syscon_reg_ptr H_SYSCON  = (APT_SYSCON_Reg_t   *)APT_SYSCON_BASE;
 
 // syscon interrupt callback routine pointer
 syscon_event_cb_t syscon_event_cb;
@@ -242,7 +242,6 @@ int32_t csi_syscon_systemclock_config(syscon_sysclk_e sysclk_setup, uint32_t hcl
 
 /**
   \brief       Enable/disable pclk of individual peripheral
-  \param[in]   handle   syscon to be operate
   \param[in]   status   en/dis operation
   \param[in]   pclk0_sel individual pclk target on PCLK0
 						 defined as: PCLK_ADC/PCLK_UART0 ...

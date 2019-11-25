@@ -80,6 +80,8 @@ IRQn_Type;
 #include "apt_common.h"
 
 extern sysclk_cfg_t sysclk_cfg;
+ 
+#define CONFIG_GPIO_NUM 5
 
 /* ================================================================================ */
 /* ================              Peripheral memory map             ================ */
