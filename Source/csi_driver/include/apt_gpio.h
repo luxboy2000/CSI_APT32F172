@@ -19,6 +19,7 @@
 #define _CSI_GPIO_H_
 
 #ifdef __cplusplus
+class csi_gpio_pin_func_config;
 extern "C" {
 #endif
 
@@ -179,6 +180,17 @@ typedef union {
 
 
 ////////////////////////////////// Public //////////////////////////////////////
+
+/**
+   @brief GPIO port handler inintialization
+ 
+   Initialize port instance to be the default reset status and assign
+   access register pointer to the resource according to port index
+   
+   @param[in]   idx  GPIO port to be initialized: PORTA0, PORTA1 ... 
+   @return      resource handler of specific gpio port
+ */ 
+gpio_port_handle_t csi_gpio_initialize (int32_t idx);
 
 /**
    @brief ISR call-back registration
