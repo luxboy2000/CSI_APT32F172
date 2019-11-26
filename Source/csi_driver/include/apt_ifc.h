@@ -24,7 +24,7 @@ extern "C" {
 
 #include <stdint.h>
 #include <stdbool.h>
-#include <drv_common.h>
+#include <apt_common.h>
 
 #define IFC_USER_KEY (0x5A5A5A5Aul)
 #define IFC_HMODE	 (1ul<<8)
