@@ -313,7 +313,7 @@ typedef enum {
     CMDERR_EVENT            ,
 } syscon_event_e;
 
-typedef void (*syscon_event_cb_t)(exi_event_e event);   ///< gpio Event call back.
+typedef void (*syscon_event_cb_t)(syscon_event_e event);   ///< gpio Event call back.
 
 ////////////////////////////////// Public //////////////////////////////////////
 /**

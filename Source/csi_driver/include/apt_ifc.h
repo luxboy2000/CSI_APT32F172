@@ -45,6 +45,10 @@ typedef struct {
     __IOM uint32_t ICLR ;
 } APT_IFC_Reg_t, *ifc_reg_ptr;
 
+extern ifc_reg_ptr H_IFC;
+
+
+
 /*----- IFC command -----*/
 typedef enum {
     CMD_PGM				= 1	,	///< Program command
@@ -60,11 +64,94 @@ typedef enum {
 	CMP_PGMOPT				,	///< Program user option
 } ifc_cmd_e;
 
-extern ifc_reg_ptr H_IFC;
+/*----- SYSCON Interrupt Event  -----*/
+typedef enum {
+    // ---------    EXI    ---------
+    CMDEND					=0,
+	PROT_ERR				=12,
+    UDEF_ERR				,
+    ADDR_ERR				,
+    OVW_ERR					,
+} ifc_event_e;
+
+typedef void (*ifc_event_cb_t)(ifc_event_e event);   ///< ifc Event call back.
 
 #define ifc_start_cmd(reg_ptr)		((reg_ptr)->CR = 1ul)
 #define ifc_set_protkey(reg_ptr)	((reg_ptr)->KR = IFC_USER_KEY)
 #define ifc_clr_protkey(reg_ptr)	((reg_ptr)->KR = 0x0ul)
+
+
+////////////////////////////////// Public //////////////////////////////////////
+/**
+ * @brief       ISR call-back registration
+ * @param[i]    cb     pointer to customer ISR when EXI is called 
+ * @param[i]    idx    exi isr number to be initialized
+ * @return      zero on success
+*/
+int32_t csi_ifc_cb_init (ifc_event_cb_t cb);
+
+/**
+  @brief       IAP Program flash word function.
+
+				Flash program unit is one word, so the buffer should be orgnized in
+				32bit aligned. If the given address is not 4-bytes aligned, the LSB
+				2bit will be ignored.
+ 
+  @param[in]   addr    Start address of flash to be write
+  @param[in]   size    number of word to be programmed
+  @param[in]   ptrBuf  pointer of buffer to transfer data
+  @return      the last completed address
+*/
+uint32_t csi_ifc_program (uint32_t addr, uint32_t size, uint32_t *ptrBuf);
+
+
+/**
+  @brief       IAP Program flash byte function.
+
+				Flash program unit is one byte, so the buffer should be orgnized in
+				8bit aligned. The program is indeedly word based, so the rest bytes
+				in current word will keep as not changed. It is not efficient to program
+				consecutive bytes by this method and it is suggested to use word program 
+				method in stead.
+ 
+  @param[in]   addr    Start address of flash to be write
+  @param[in]   size    number of word to be programmed
+  @param[in]   ptrBuf  pointer of buffer to transfer data
+  @return      the last completed address
+*/
+uint32_t csi_ifc_byte_program (uint32_t addr, uint32_t size, uint8_t *ptrBuf);
+
+
+/**
+  @brief       Read back flash content.
+
+				Return the content by the supplied buffer pointer.
+				This function is word aligned, and LSB 2bit of the 
+				given address is ignored.
+  
+  @param[in]   addr    Start address of flash to be read
+  @param[in]   size    number of word to be read
+  @param[in]   ptrBuf  pointer of buffer to transfer data
+  \return      error code
+*/
+uint32_t csi_ifc_read(uint32_t addr, uint32_t size, uint32_t *ptrBuf);
+
+
+/**
+  @brief       Read back flash content in byte.
+
+				Return the content by the supplied buffer pointer.
+				This function supplies byte access to flash
+  
+  @param[in]   addr    Start address of flash to be read
+  @param[in]   size    number of word to be read
+  @param[in]   ptrBuf  pointer of buffer to transfer data
+  \return      error code
+*/
+uint32_t csi_ifc_byte_read(uint32_t addr, uint32_t size, uint8_t *ptrBuf);
+
+
+
 
 #ifdef __cplusplus
 }
