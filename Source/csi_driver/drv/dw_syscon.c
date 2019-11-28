@@ -57,6 +57,8 @@ int32_t csi_syscon_cb_init (syscon_event_cb_t cb)
 	SYSCON_NULL_PARAM_CHK(cb);
 	syscon_event_cb = cb;
 
+    csi_vic_enable_irq(SYSCON_IRQn);
+    
 	return 0;
 }
 
@@ -594,15 +596,31 @@ uint32_t csi_syscon_get_prj_infor(prj_infor_e info_sel)
 }
 
 /**
-  \brief       Get protection status
+  \brief       Get user defined/protection status
   \param[in]   info_sel information to be load
   \return      result of check
 */
-prot_ret_e csi_syscon_get_prot_infor(prot_infor_e info_sel)
+prot_ret_e csi_syscon_get_opt0_infor(prot_infor_e info_sel)
 {
 	prot_ret_e result;
 	switch(info_sel)
 	{
+		case WDT:
+			if ((H_SYSCON->OPT0) & (1ul)) {
+				result = WDT_ON;
+			}
+			else {
+				result = WDT_OFF;
+			}
+			break;
+		case ERST:
+			if ((H_SYSCON->OPT0) & (1ul<<1)) {
+				result = ERST_ON;
+			}
+			else {
+				result = ERST_OFF;
+			}
+			break;
 		case RDP:
 			if ((H_SYSCON->OPT0) & (1ul<<27)) {
 				result = RDP_ON;

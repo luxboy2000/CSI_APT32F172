@@ -27,7 +27,9 @@ extern "C" {
 #include <apt_common.h>
 
 #define IFC_USER_KEY (0x5A5A5A5Aul)
-#define IFC_HMODE	 (1ul<<8)
+#define IFC_HMODE1	 (1ul<<8)
+#define IFC_HMODE2	 (2ul<<8)
+#define IFC_HMODE3	 (3ul<<8)
 
 typedef struct {
     __IOM uint32_t IDR ;
@@ -39,7 +41,7 @@ typedef struct {
     __IOM uint32_t PF_AR ;
     __IOM uint32_t PF_DR ;
     __IOM uint32_t KR ;
-    __IOM uint32_t ICR ;
+    __IOM uint32_t IMCR ;
     __IOM uint32_t RISR ;
     __IOM uint32_t MISR ;
     __IOM uint32_t ICLR ;
@@ -64,7 +66,81 @@ typedef enum {
 	CMP_PGMOPT				,	///< Program user option
 } ifc_cmd_e;
 
-/*----- SYSCON Interrupt Event  -----*/
+
+/*----- Page Address  -----*/
+typedef enum {
+    // ---------    EXI    ---------
+    PF_PAGE0				=0x00000000ul,
+	PF_PAGE1				=0x00000400ul,
+    PF_PAGE2				=0x00000800ul,
+    PF_PAGE3				=0x00000C00ul,
+	PF_PAGE4				=0x00001000ul,
+	PF_PAGE5				=0x00001400ul,
+	PF_PAGE6				=0x00001800ul,
+	PF_PAGE7				=0x00001C00ul,
+	PF_PAGE8				=0x00002000ul,
+	PF_PAGE9				=0x00002400ul,
+	PF_PAGE10				=0x00002800ul,
+	PF_PAGE11				=0x00002C00ul,
+	PF_PAGE12				=0x00003000ul,
+	PF_PAGE13				=0x00003400ul,
+	PF_PAGE14				=0x00003800ul,
+	PF_PAGE15				=0x00003C00ul,
+	PF_PAGE16				=0x00004000ul,
+	PF_PAGE17				=0x00004400ul,
+    PF_PAGE18				=0x00004800ul,
+    PF_PAGE19				=0x00004C00ul,
+	PF_PAGE20				=0x00005000ul,
+	PF_PAGE21				=0x00005400ul,
+	PF_PAGE22				=0x00005800ul,
+	PF_PAGE23				=0x00005C00ul,
+	PF_PAGE24				=0x00006000ul,
+	PF_PAGE25				=0x00006400ul,
+	PF_PAGE26				=0x00006800ul,
+	PF_PAGE27				=0x00006C00ul,
+	PF_PAGE28				=0x00007000ul,
+	PF_PAGE29				=0x00007400ul,
+	PF_PAGE30				=0x00007800ul,
+	PF_PAGE31				=0x00007C00ul,
+	PF_PAGE32				=0x00008000ul,
+	PF_PAGE33				=0x00008400ul,
+    PF_PAGE34				=0x00008800ul,
+    PF_PAGE35				=0x00008C00ul,
+	PF_PAGE36				=0x00009000ul,
+	PF_PAGE37				=0x00009400ul,
+	PF_PAGE38				=0x00009800ul,
+	PF_PAGE39				=0x00009C00ul,
+	PF_PAGE40				=0x0000A000ul,
+	PF_PAGE41				=0x0000A400ul,
+	PF_PAGE42				=0x0000A800ul,
+	PF_PAGE43				=0x0000AC00ul,
+	PF_PAGE44				=0x0000B000ul,
+	PF_PAGE45				=0x0000B400ul,
+	PF_PAGE46				=0x0000B800ul,
+	PF_PAGE47				=0x0000BC00ul,
+	PF_PAGE48				=0x0000C000ul,
+	PF_PAGE49				=0x0000C400ul,
+    PF_PAGE50				=0x0000C800ul,
+    PF_PAGE51				=0x0000CC00ul,
+	PF_PAGE52				=0x0000D000ul,
+	PF_PAGE53				=0x0000D400ul,
+	PF_PAGE54				=0x0000D800ul,
+	PF_PAGE55				=0x0000DC00ul,
+	PF_PAGE56				=0x0000E000ul,
+	PF_PAGE57				=0x0000E400ul,
+	PF_PAGE58				=0x0000E800ul,
+	PF_PAGE59				=0x0000EC00ul,
+	PF_PAGE60				=0x0000F000ul,
+	PF_PAGE61				=0x0000F400ul,
+	PF_PAGE62				=0x0000F800ul,
+	PF_PAGE63				=0x0000FC00ul,
+    DF_PAGE0				=0x10000000ul,
+	DF_PAGE1				=0x10000400ul,
+    DF_PAGE2				=0x10000800ul,
+    DF_PAGE3				=0x10000C00ul,
+} ifc_page_adr;
+
+/*----- IFC Interrupt Event  -----*/
 typedef enum {
     // ---------    EXI    ---------
     CMDEND					=0,
@@ -79,7 +155,8 @@ typedef void (*ifc_event_cb_t)(ifc_event_e event);   ///< ifc Event call back.
 #define ifc_start_cmd(reg_ptr)		((reg_ptr)->CR = 1ul)
 #define ifc_set_protkey(reg_ptr)	((reg_ptr)->KR = IFC_USER_KEY)
 #define ifc_clr_protkey(reg_ptr)	((reg_ptr)->KR = 0x0ul)
-
+#define ifc_clk_enable(reg_ptr)		((reg_ptr)->CEDR = 1ul)
+#define ifc_clk_disable(reg_ptr)	((reg_ptr)->CEDR = 0)
 
 ////////////////////////////////// Public //////////////////////////////////////
 /**
@@ -151,6 +228,17 @@ uint32_t csi_ifc_read(uint32_t addr, uint32_t size, uint32_t *ptrBuf);
 uint32_t csi_ifc_byte_read(uint32_t addr, uint32_t size, uint8_t *ptrBuf);
 
 
+/**
+  @brief       Flash Page Erase.
+
+				Erase flash pages according to the address.
+				The page size of this device is 1Kbytes. 
+  
+  @param[in]   addr    Start page address of flash to be erase
+  @param[in]   size    number of pages to be read
+  @return      error code
+*/
+uint32_t csi_ifc_page_erase(ifc_page_adr addr, uint32_t size);
 
 
 #ifdef __cplusplus

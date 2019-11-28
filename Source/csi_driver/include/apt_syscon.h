@@ -170,12 +170,6 @@ typedef enum {
     PCLK_GPIOD0          = (1ull<<(32+27)),
 } syscon_pclk_e;
 
-/*----- enable/disable option -----*/
-typedef enum {
-    ENABLE                     = 0,    ///< EMOSC Normal option
-    DISABLE                       ,    ///< EMOSC Low frequence option
-} syscon_endis_e;
-
 /*----- Clock monitor Reset option -----*/
 typedef enum {
     CKM_RST_OFF                = 0,    ///< EMOSC Normal option
@@ -232,13 +226,19 @@ typedef enum {
 
 /*----- protection information to be load selection -----*/
 typedef enum {
-    RDP                        = 0,    ///< select custom information0
-    DBP                           ,    ///< select custom information1
-    HDP                           ,    ///< select factory information0 
+    WDT                        = 0,    ///< select watchdog status
+	ERST                          ,	   ///< select ext.Rst status
+	RDP                           ,    ///< select read protection status
+    DBP                           ,    ///< select debug protection status
+    HDP                           ,    ///< select hard protection status 
 } prot_infor_e;
 
 typedef enum {
-    RDP_ON                      =0,
+	WDT_ON                      =0,
+	WDT_OFF                       ,
+    ERST_ON                       ,
+	ERST_OFF                      ,
+	RDP_ON                        ,
     RDP_OFF                       ,
     DBP_ON                        ,
     DBP_OFF                       ,
@@ -506,11 +506,11 @@ uint32_t csi_syscon_interrupt_get_status(syscon_event_e int_sel, syscon_endis_e 
 uint32_t csi_syscon_get_prj_infor(prj_infor_e info_sel);
 
 /**
-  \brief       Get protection status
+  \brief       Get user defined/protection status
   \param[in]   info_sel information to be load
   \return      result of check
 */
-prot_ret_e csi_syscon_get_prot_infor(prot_infor_e info_sel);
+prot_ret_e csi_syscon_get_opt0_infor(prot_infor_e info_sel);
 
 /**
   \brief       Set hfosc (96MHz) enable/disable

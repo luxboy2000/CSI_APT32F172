@@ -136,6 +136,11 @@ int32_t csi_gpio_exi_cb_init (gpio_event_cb_t cb)
 {
     GPIO_NULL_PARAM_CHK(cb);
     gpio_exi_cb = cb;
+	csi_vic_enable_irq(EXI0_IRQn);
+	csi_vic_enable_irq(EXI1_IRQn);
+	csi_vic_enable_irq(EXI2_IRQn);
+	csi_vic_enable_irq(EXI3_IRQn);
+	csi_vic_enable_irq(EXI4_IRQn);
     return 0;
 }
 

@@ -66,6 +66,12 @@ typedef struct {
 	uint32_t _cur_pclk_freq;
 } sysclk_cfg_t;
 
+/*----- enable/disable option -----*/
+typedef enum {
+    ENABLE                     = 0,    ///< Enable option
+    DISABLE                       ,    ///< Disable option
+} syscon_endis_e;
+
 ///// \details driver handle
 //typedef void *drv_handle_t;
 //
