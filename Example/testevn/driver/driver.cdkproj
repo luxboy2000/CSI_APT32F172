@@ -111,16 +111,36 @@
         </File>
       </VirtualDirectory>
       <VirtualDirectory Name="mm">
-        <File Name="../../../Source/libs/mm/dq_addlast.c"/>
-        <File Name="../../../Source/libs/mm/dq_rem.c"/>
-        <File Name="../../../Source/libs/mm/lib_mallinfo.c"/>
-        <File Name="../../../Source/libs/mm/mm_addfreechunk.c"/>
-        <File Name="../../../Source/libs/mm/mm_free.c"/>
-        <File Name="../../../Source/libs/mm/mm_initialize.c"/>
-        <File Name="../../../Source/libs/mm/mm_leak.c"/>
-        <File Name="../../../Source/libs/mm/mm_mallinfo.c"/>
-        <File Name="../../../Source/libs/mm/mm_malloc.c"/>
-        <File Name="../../../Source/libs/mm/mm_size2ndx.c"/>
+        <File Name="../../../Source/libs/mm/dq_addlast.c">
+          <FileOption/>
+        </File>
+        <File Name="../../../Source/libs/mm/dq_rem.c">
+          <FileOption/>
+        </File>
+        <File Name="../../../Source/libs/mm/lib_mallinfo.c">
+          <FileOption/>
+        </File>
+        <File Name="../../../Source/libs/mm/mm_addfreechunk.c">
+          <FileOption/>
+        </File>
+        <File Name="../../../Source/libs/mm/mm_free.c">
+          <FileOption/>
+        </File>
+        <File Name="../../../Source/libs/mm/mm_initialize.c">
+          <FileOption/>
+        </File>
+        <File Name="../../../Source/libs/mm/mm_leak.c">
+          <FileOption/>
+        </File>
+        <File Name="../../../Source/libs/mm/mm_mallinfo.c">
+          <FileOption/>
+        </File>
+        <File Name="../../../Source/libs/mm/mm_malloc.c">
+          <FileOption/>
+        </File>
+        <File Name="../../../Source/libs/mm/mm_size2ndx.c">
+          <FileOption/>
+        </File>
       </VirtualDirectory>
     </VirtualDirectory>
   </VirtualDirectory>
@@ -253,7 +273,7 @@
         <Undefine/>
         <Optim>None (-O0)</Optim>
         <DebugLevel>Maximum (-g3)</DebugLevel>
-        <IncludePath>$(ProjectPath);$(ProjectPath)/../../../Source/libs/include;G:/SW_HOME/CSKY/CSI/APT32F172A/CSI_APT32F172/Source;G:/SW_HOME/CSKY/CSI/APT32F172A/CSI_APT32F172/Source/csi_core/include;G:/SW_HOME/CSKY/CSI/APT32F172A/CSI_APT32F172/Source/csi_driver/drv/include;G:/SW_HOME/CSKY/CSI/APT32F172A/CSI_APT32F172/Source/csi_driver/include;G:/SW_HOME/CSKY/CSI/APT32F172A/CSI_APT32F172/Source/libs/include</IncludePath>
+        <IncludePath>$(ProjectPath);$(ProjectPath)/../../../Source/libs/include;$(ProjectPath)/../../../Source/csi_driver/drv/include;$(ProjectPath)/../../../Source/csi_driver/drv;$(ProjectPath)/../../../Source/csi_driver/include;$(ProjectPath)/../../../Source/csi_core/include</IncludePath>
         <OtherFlags/>
         <Verbose>no</Verbose>
         <Ansi>no</Ansi>
