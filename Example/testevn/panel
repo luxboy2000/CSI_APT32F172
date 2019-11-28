@@ -1,0 +1,347 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Project Name="driver" Version="1" Language="C">
+  <Description/>
+  <Dependencies Name="Debug"/>
+  <VirtualDirectory Name="Driver">
+    <VirtualDirectory Name="csi_driver">
+      <VirtualDirectory Name="drv">
+        <File Name="../../../CSI_APT32F172/Source/csi_driver/drv/devices.c">
+          <FileOption/>
+        </File>
+        <File Name="../../../CSI_APT32F172/Source/csi_driver/drv/dw_gpio.c">
+          <FileOption/>
+        </File>
+        <File Name="../../../CSI_APT32F172/Source/csi_driver/drv/dw_syscon.c">
+          <FileOption/>
+        </File>
+        <VirtualDirectory Name="include">
+          <File Name="../../../CSI_APT32F172/Source/csi_driver/drv/include/lib.h">
+            <FileOption/>
+          </File>
+          <File Name="../../../CSI_APT32F172/Source/csi_driver/drv/include/soc.h">
+            <FileOption/>
+          </File>
+        </VirtualDirectory>
+        <File Name="../../../CSI_APT32F172/Source/csi_driver/drv/lib.c">
+          <FileOption/>
+        </File>
+        <File Name="../../../CSI_APT32F172/Source/csi_driver/drv/minilibc_port.c">
+          <FileOption/>
+        </File>
+        <File Name="../../../CSI_APT32F172/Source/csi_driver/drv/startup.S">
+          <FileOption/>
+        </File>
+        <File Name="../../../CSI_APT32F172/Source/csi_driver/drv/system.c">
+          <FileOption/>
+        </File>
+        <File Name="../../../CSI_APT32F172/Source/csi_driver/drv/trap_c.c">
+          <FileOption/>
+        </File>
+        <File Name="../../../CSI_APT32F172/Source/csi_driver/drv/vectors.S">
+          <FileOption/>
+        </File>
+        <File Name="../../../CSI_APT32F172/Source/csi_driver/drv/isr.c">
+          <FileOption/>
+        </File>
+        <File Name="../../../CSI_APT32F172/Source/csi_config.h"/>
+      </VirtualDirectory>
+      <VirtualDirectory Name="include">
+        <File Name="../../../CSI_APT32F172/Source/csi_driver/include/apt_gpio.h">
+          <FileOption/>
+        </File>
+        <File Name="../../../CSI_APT32F172/Source/csi_driver/include/apt_syscon.h">
+          <FileOption/>
+        </File>
+        <File Name="../../../CSI_APT32F172/Source/csi_driver/include/apt_common.h">
+          <FileOption/>
+        </File>
+        <File Name="../../../CSI_APT32F172/Source/csi_driver/include/apt_errno.h">
+          <FileOption/>
+        </File>
+      </VirtualDirectory>
+    </VirtualDirectory>
+    <VirtualDirectory Name="csi_core">
+      <VirtualDirectory Name="include">
+        <File Name="../../../CSI_APT32F172/Source/csi_core/include/core_ck801.h">
+          <FileOption/>
+        </File>
+        <File Name="../../../CSI_APT32F172/Source/csi_core/include/core_ck802.h">
+          <FileOption/>
+        </File>
+        <File Name="../../../CSI_APT32F172/Source/csi_core/include/core_ck803.h">
+          <FileOption/>
+        </File>
+        <File Name="../../../CSI_APT32F172/Source/csi_core/include/csi_core.h">
+          <FileOption/>
+        </File>
+        <File Name="../../../CSI_APT32F172/Source/csi_core/include/csi_gcc.h">
+          <FileOption/>
+        </File>
+      </VirtualDirectory>
+    </VirtualDirectory>
+    <VirtualDirectory Name="libs">
+      <VirtualDirectory Name="include">
+        <File Name="../../../CSI_APT32F172/Source/libs/include/errno.h">
+          <FileOption/>
+        </File>
+        <File Name="../../../CSI_APT32F172/Source/libs/include/mm.h">
+          <FileOption/>
+        </File>
+        <File Name="../../../CSI_APT32F172/Source/libs/include/mm_queue.h">
+          <FileOption/>
+        </File>
+        <File Name="../../../CSI_APT32F172/Source/libs/include/umm_heap.h">
+          <FileOption/>
+        </File>
+      </VirtualDirectory>
+      <VirtualDirectory Name="libc">
+        <File Name="../../../CSI_APT32F172/Source/libs/libc/malloc.c">
+          <FileOption/>
+        </File>
+      </VirtualDirectory>
+      <VirtualDirectory Name="mm">
+        <File Name="../../../CSI_APT32F172/Source/libs/mm/dq_addlast.c">
+          <FileOption/>
+        </File>
+        <File Name="../../../CSI_APT32F172/Source/libs/mm/dq_rem.c">
+          <FileOption/>
+        </File>
+        <File Name="../../../CSI_APT32F172/Source/libs/mm/lib_mallinfo.c">
+          <FileOption/>
+        </File>
+        <File Name="../../../CSI_APT32F172/Source/libs/mm/mm_addfreechunk.c">
+          <FileOption/>
+        </File>
+        <File Name="../../../CSI_APT32F172/Source/libs/mm/mm_free.c">
+          <FileOption/>
+        </File>
+        <File Name="../../../CSI_APT32F172/Source/libs/mm/mm_initialize.c">
+          <FileOption/>
+        </File>
+        <File Name="../../../CSI_APT32F172/Source/libs/mm/mm_leak.c">
+          <FileOption/>
+        </File>
+        <File Name="../../../CSI_APT32F172/Source/libs/mm/mm_mallinfo.c">
+          <FileOption/>
+        </File>
+        <File Name="../../../CSI_APT32F172/Source/libs/mm/mm_malloc.c">
+          <FileOption/>
+        </File>
+        <File Name="../../../CSI_APT32F172/Source/libs/mm/mm_size2ndx.c">
+          <FileOption/>
+        </File>
+      </VirtualDirectory>
+    </VirtualDirectory>
+  </VirtualDirectory>
+  <VirtualDirectory Name="Arch">
+    <File Name="../../../CSI_APT32F172/Source/ckcpu.ld">
+      <FileOption/>
+    </File>
+    <File Name="../../../CSI_APT32F172/Source/flash.init">
+      <FileOption/>
+    </File>
+    <File Name="../../../CSI_APT32F172/Source/gdb.init">
+      <FileOption/>
+    </File>
+  </VirtualDirectory>
+  <VirtualDirectory Name="Project">
+    <File Name="main.c">
+      <FileOption/>
+    </File>
+  </VirtualDirectory>
+  <MonitorProgress>
+    <DebugLaunch>87</DebugLaunch>
+    <FlashOperate>81</FlashOperate>
+  </MonitorProgress>
+  <BuildConfigs>
+    <BuildConfig Name="BuildSet">
+      <Target>
+        <ROMBank Selected="1">
+          <ROM1>
+            <InUse>yes</InUse>
+            <Start>0x0</Start>
+            <Size>0x00010000</Size>
+          </ROM1>
+          <ROM2>
+            <InUse>no</InUse>
+            <Start/>
+            <Size/>
+          </ROM2>
+          <ROM3>
+            <InUse>no</InUse>
+            <Start/>
+            <Size/>
+          </ROM3>
+          <ROM4>
+            <InUse>no</InUse>
+            <Start/>
+            <Size/>
+          </ROM4>
+          <ROM5>
+            <InUse>no</InUse>
+            <Start/>
+            <Size/>
+          </ROM5>
+        </ROMBank>
+        <RAMBank>
+          <RAM1>
+            <InUse>yes</InUse>
+            <Start>0x20000000</Start>
+            <Size>0x20001800</Size>
+            <Init>yes</Init>
+          </RAM1>
+          <RAM2>
+            <InUse>no</InUse>
+            <Start/>
+            <Size/>
+            <Init>yes</Init>
+          </RAM2>
+          <RAM3>
+            <InUse>no</InUse>
+            <Start/>
+            <Size/>
+            <Init>yes</Init>
+          </RAM3>
+          <RAM4>
+            <InUse>no</InUse>
+            <Start/>
+            <Size/>
+            <Init>yes</Init>
+          </RAM4>
+          <RAM5>
+            <InUse>no</InUse>
+            <Start/>
+            <Size/>
+            <Init>yes</Init>
+          </RAM5>
+        </RAMBank>
+        <CPU>e801</CPU>
+        <UseMiniLib>yes</UseMiniLib>
+        <Endian>little</Endian>
+        <UseHardFloat>no</UseHardFloat>
+        <UseEnhancedLRW>yes</UseEnhancedLRW>
+        <UseContinueBuild>no</UseContinueBuild>
+        <UseSemiHost>no</UseSemiHost>
+      </Target>
+      <Output>
+        <OutputName>$(ProjectName)</OutputName>
+        <Type>Executable</Type>
+        <CreateHexFile>no</CreateHexFile>
+        <CreateBinFile>no</CreateBinFile>
+        <Preprocessor>yes</Preprocessor>
+        <Disasm>yes</Disasm>
+        <CallGraph>no</CallGraph>
+        <Map>yes</Map>
+      </Output>
+      <User>
+        <BeforeCompile>
+          <RunUserProg>no</RunUserProg>
+          <UserProgName/>
+        </BeforeCompile>
+        <BeforeMake>
+          <RunUserProg>no</RunUserProg>
+          <UserProgName/>
+        </BeforeMake>
+        <AfterMake>
+          <RunUserProg>no</RunUserProg>
+          <UserProgName/>
+        </AfterMake>
+      </User>
+      <Compiler>
+        <Define/>
+        <Undefine/>
+        <Optim>None (-O0)</Optim>
+        <DebugLevel>Maximum (-g3)</DebugLevel>
+        <IncludePath>$(ProjectPath);G:/SW_HOME/CSKY/CSI/APT32F172A/CSI_APT32F172/Source;G:/SW_HOME/CSKY/CSI/APT32F172A/CSI_APT32F172/Source/csi_core/include;G:/SW_HOME/CSKY/CSI/APT32F172A/CSI_APT32F172/Source/libs/include;G:/SW_HOME/CSKY/CSI/APT32F172A/CSI_APT32F172/Source/csi_driver/include;G:/SW_HOME/CSKY/CSI/APT32F172A/CSI_APT32F172/Source/csi_driver/drv/include</IncludePath>
+        <OtherFlags/>
+        <Verbose>no</Verbose>
+        <Ansi>no</Ansi>
+        <Syntax>no</Syntax>
+        <Pedantic>no</Pedantic>
+        <PedanticErr>no</PedanticErr>
+        <InhibitWarn>no</InhibitWarn>
+        <AllWarn>yes</AllWarn>
+        <WarnErr>no</WarnErr>
+        <OneElfS>no</OneElfS>
+        <Fstrict>no</Fstrict>
+      </Compiler>
+      <Asm>
+        <Define/>
+        <Undefine/>
+        <IncludePath>$(ProjectPath);$(ProjectPath)/../../../CSI_APT32F172/Source/csi_core/include;$(ProjectPath)/../../../CSI_APT32F172/Source/csi_driver/drv/include;$(ProjectPath)/../../../CSI_APT32F172/Source/csi_driver/include;$(ProjectPath)/../../../CSI_APT32F172/Source/libs/include;G:/SW_HOME/CSKY/CSI/APT32F172A/CSI_APT32F172/Source</IncludePath>
+        <OtherFlags/>
+        <DebugLevel>gdwarf2</DebugLevel>
+      </Asm>
+      <Linker>
+        <Garbage>yes</Garbage>
+        <LDFile>$(ProjectPath)/ckcpu.ld</LDFile>
+        <LibName/>
+        <LibPath/>
+        <OtherFlags/>
+        <AutoLDFile>no</AutoLDFile>
+      </Linker>
+      <Debug>
+        <LoadApplicationAtStartup>yes</LoadApplicationAtStartup>
+        <Connector>ICE</Connector>
+        <StopAt>no</StopAt>
+        <StopAtText>main</StopAtText>
+        <InitFile>$(ProjectPath)/gdb.init</InitFile>
+        <AutoRun>yes</AutoRun>
+        <ResetType>Soft Reset</ResetType>
+        <SoftResetVal>abcd1234</SoftResetVal>
+        <ResetAfterLoad>yes</ResetAfterLoad>
+        <Dumpcore>no</Dumpcore>
+        <DumpcoreText>$(ProjectPath)/$(ProjectName).cdkcore</DumpcoreText>
+        <ConfigICE>
+          <IP>localhost</IP>
+          <PORT>1025</PORT>
+          <Clock>1000</Clock>
+          <Delay>10</Delay>
+          <WaitReset>50</WaitReset>
+          <DDC>yes</DDC>
+          <TRST>no</TRST>
+          <DebugPrint>no</DebugPrint>
+          <Connect>Normal</Connect>
+          <ResetType>Soft Reset</ResetType>
+          <SoftResetVal>0</SoftResetVal>
+          <RTOSType>Bare Metal</RTOSType>
+          <DownloadToFlash>yes</DownloadToFlash>
+          <ResetAfterConnect>yes</ResetAfterConnect>
+          <GDBName/>
+          <GDBServerType>Local</GDBServerType>
+          <OtherFlags/>
+        </ConfigICE>
+        <ConfigSIM>
+          <SIMTarget/>
+          <OtherFlags/>
+          <NoGraphic>yes</NoGraphic>
+          <Log>no</Log>
+          <SimTrace>no</SimTrace>
+        </ConfigSIM>
+      </Debug>
+      <Flash>
+        <InitFile>$(ProjectPath)/flash.init</InitFile>
+        <Erase>Erase Full Chip</Erase>
+        <Algorithms Path="">APT32F172_FLASHDOWN.elf</Algorithms>
+        <Program>yes</Program>
+        <Verify>yes</Verify>
+        <ResetAndRun>yes</ResetAndRun>
+        <ResetType>Soft Reset</ResetType>
+        <SoftResetVal>abcd1234</SoftResetVal>
+        <External>no</External>
+        <Command/>
+        <Arguments/>
+      </Flash>
+    </BuildConfig>
+  </BuildConfigs>
+  <DebugSessions>
+    <watchExpressions>gpio_pa1_config:0;H_SYSCON-&gt;IWDEDR:0;H_SYSCON-&gt;RSR:0;sizeof(gpio_pa0_config):0;H_GPIOA1-&gt;CONLR:0;H_SYSCON-&gt;SCLKCR:0;sysclk_cfg:0;hclk_div:0;target_sysclk_freq:0</watchExpressions>
+    <memoryExpressions>0x400110BC;;;</memoryExpressions>
+    <statistics>;;MHZ</statistics>
+    <peripheralTabs/>
+    <WatchDisplayFormat>0</WatchDisplayFormat>
+    <LocalDisplayFormat>0</LocalDisplayFormat>
+    <debugLayout/>
+    <memoryTabColSizeExpressions>100:8;100:8;100:8;100:8;</memoryTabColSizeExpressions>
+  </DebugSessions>
+</Project>

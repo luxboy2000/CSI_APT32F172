@@ -1,0 +1,329 @@
+<!DOCTYPE html PUBLIC "-//w3c//dtd html 4.0 transitional//en">
+<html>
+<head>
+<title>Static Call Graph - [Obj/driver.elf]</title>
+</head>
+<body><hr>
+<h1>Static Call Graph for image Obj/driver.elf</h1><hr>
+<br>
+<p>#&#060CALLGRAPH&#062# Csky GNU Linker<br>
+<h3>Maximum Stack Usage = 92 bytes + Unknown(Cycles, Untraceable Function Pointers)</h3>
+<h3>Call Chain for Maximum Stack Depth:</h3>
+main &rArr; csi_gpio_pin_func_config </ul>
+<h3>Mutually Recursive functions</h3><ul>
+</ul><h3>Function Pointers</h3><ul>
+<li><a href="#[0]">main</a> from Obj/main.o(.text) referenced from Obj/drv_startup.o(.text)
+<li><a href="#[1]">csi_gpio_initialize</a> from Obj/drv_dw_gpio.o(.text) referenced from Obj/main.o(.text)
+<li><a href="#[4]">csi_gpio_pin_func_config</a> from Obj/drv_dw_gpio.o(.text) referenced from Obj/main.o(.text)
+<li><a href="#[19]">csi_syscon_systemclock_config</a> from Obj/drv_dw_syscon.o(.text) referenced from Obj/drv_system.o(.text)
+<li><a href="#[1a]">csi_syscon_set_solo_pclk_switch</a> from Obj/drv_dw_syscon.o(.text) referenced from Obj/main.o(.text)
+<li><a href="#[1b]">csi_syscon_set_all_pclk_switch</a> from Obj/drv_dw_syscon.o(.text) referenced from Obj/main.o(.text)
+<li><a href="#[1e]">csi_syscon_iwdt_set_switch</a> from Obj/drv_dw_syscon.o(.text) referenced from Obj/drv_system.o(.text)
+<li><a href="#[31]">csi_syscon_clo_config</a> from Obj/drv_dw_syscon.o(.text) referenced from Obj/main.o(.text)
+<li><a href="#[64]">SystemInit</a> from Obj/drv_system.o(.text) referenced from Obj/drv_startup.o(.text)
+<li><a href="#[93]">__udivsi3</a> from _udivsi3.o(.text) referenced from Obj/drv_dw_syscon.o(.text)
+</ul>
+<h3>Global Symbols</h3>
+<p><strong><a name="[0]"></a>main</strong>(192 bytes, Stack size 20 btyes, Obj/main.o(.text))<br>
+<br>[Stack]<ul><li>Max Depth = 92 
+<li>Call Chain = main &rArr; csi_gpio_pin_func_config </ul>
+<br>[Calls]<ul>
+<li><a href="#[1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;csi_gpio_initialize
+<li><a href="#[1a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;csi_syscon_set_solo_pclk_switch
+<li><a href="#[1b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;csi_syscon_set_all_pclk_switch
+<li><a href="#[4]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;csi_gpio_pin_func_config
+<li><a href="#[31]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;csi_syscon_clo_config
+</ul>
+<br>[Called By]<ul>
+<li><a href="#[62]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Reset_Handler
+</ul>
+<p><strong><a name="[1]"></a>csi_gpio_initialize</strong>(356 bytes, Stack size 16 btyes, Obj/drv_dw_gpio.o(.text))<br>
+<br>[Called By]<ul>
+<li><a href="#[0]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
+</ul>
+<p><strong><a name="[2]"></a>csi_gpio_exi_cb_init</strong>(234 bytes, Stack size 28 btyes, Obj/drv_dw_gpio.o(.text))<br>
+<p><strong><a name="[3]"></a>csi_gpio_port_config</strong>(184 bytes, Stack size 32 btyes, Obj/drv_dw_gpio.o(.text))<br>
+<p><strong><a name="[4]"></a>csi_gpio_pin_func_config</strong>(424 bytes, Stack size 72 btyes, Obj/drv_dw_gpio.o(.text))<br>
+<br>[Called By]<ul>
+<li><a href="#[0]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
+</ul>
+<p><strong><a name="[5]"></a>csi_gpio_pin_pull_config</strong>(228 bytes, Stack size 32 btyes, Obj/drv_dw_gpio.o(.text))<br>
+<p><strong><a name="[6]"></a>csi_gpio_pin_speed_config</strong>(248 bytes, Stack size 32 btyes, Obj/drv_dw_gpio.o(.text))<br>
+<p><strong><a name="[7]"></a>csi_gpio_pin_outputmode_config</strong>(226 bytes, Stack size 32 btyes, Obj/drv_dw_gpio.o(.text))<br>
+<p><strong><a name="[8]"></a>csi_gpio_pin_exi_set</strong>(344 bytes, Stack size 28 btyes, Obj/drv_dw_gpio.o(.text))<br>
+<p><strong><a name="[9]"></a>ifc_update_addr_dr_cfg</strong>(72 bytes, Stack size 0 btyes, Obj/drv_dw_ifc.o(.text))<br>
+<p><strong><a name="[a]"></a>csi_ifc_cb_init</strong>(96 bytes, Stack size 0 btyes, Obj/drv_dw_ifc.o(.text))<br>
+<p><strong><a name="[b]"></a>csi_ifc_program</strong>(314 bytes, Stack size 0 btyes, Obj/drv_dw_ifc.o(.text))<br>
+<p><strong><a name="[c]"></a>csi_ifc_byte_program</strong>(390 bytes, Stack size 0 btyes, Obj/drv_dw_ifc.o(.text))<br>
+<p><strong><a name="[d]"></a>csi_ifc_read</strong>(194 bytes, Stack size 0 btyes, Obj/drv_dw_ifc.o(.text))<br>
+<p><strong><a name="[e]"></a>csi_ifc_byte_read</strong>(270 bytes, Stack size 0 btyes, Obj/drv_dw_ifc.o(.text))<br>
+<p><strong><a name="[f]"></a>csi_ifc_page_erase</strong>(264 bytes, Stack size 0 btyes, Obj/drv_dw_ifc.o(.text))<br>
+<p><strong><a name="[10]"></a>csi_ifc_option_erase</strong>(76 bytes, Stack size 0 btyes, Obj/drv_dw_ifc.o(.text))<br>
+<p><strong><a name="[11]"></a>csi_ifc_user_option_set</strong>(106 bytes, Stack size 0 btyes, Obj/drv_dw_ifc.o(.text))<br>
+<p><strong><a name="[12]"></a>csi_ifc_prot_option_set</strong>(92 bytes, Stack size 0 btyes, Obj/drv_dw_ifc.o(.text))<br>
+<p><strong><a name="[13]"></a>csi_ifc_interrupt_set_switch</strong>(116 bytes, Stack size 0 btyes, Obj/drv_dw_ifc.o(.text))<br>
+<p><strong><a name="[14]"></a>csi_ifc_interrupt_clear_pending</strong>(50 bytes, Stack size 0 btyes, Obj/drv_dw_ifc.o(.text))<br>
+<p><strong><a name="[15]"></a>csi_ifc_interrupt_get_status</strong>(124 bytes, Stack size 0 btyes, Obj/drv_dw_ifc.o(.text))<br>
+<p><strong><a name="[16]"></a>csi_syscon_cb_init</strong>(104 bytes, Stack size 12 btyes, Obj/drv_dw_syscon.o(.text))<br>
+<p><strong><a name="[17]"></a>csi_syscon_emosc_config</strong>(174 bytes, Stack size 16 btyes, Obj/drv_dw_syscon.o(.text))<br>
+<p><strong><a name="[18]"></a>csi_syscon_set_clocksource_switch</strong>(252 bytes, Stack size 20 btyes, Obj/drv_dw_syscon.o(.text))<br>
+<p><strong><a name="[19]"></a>csi_syscon_systemclock_config</strong>(1336 bytes, Stack size 48 btyes, Obj/drv_dw_syscon.o(.text))<br>
+<br>[Calls]<ul>
+<li><a href="#[93]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__udivsi3
+</ul>
+<br>[Called By]<ul>
+<li><a href="#[64]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;SystemInit
+</ul>
+<p><strong><a name="[1a]"></a>csi_syscon_set_solo_pclk_switch</strong>(138 bytes, Stack size 28 btyes, Obj/drv_dw_syscon.o(.text))<br>
+<br>[Called By]<ul>
+<li><a href="#[0]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
+</ul>
+<p><strong><a name="[1b]"></a>csi_syscon_set_all_pclk_switch</strong>(86 bytes, Stack size 8 btyes, Obj/drv_dw_syscon.o(.text))<br>
+<br>[Called By]<ul>
+<li><a href="#[0]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
+</ul>
+<p><strong><a name="[1c]"></a>csi_syscon_clockmonitor_set_switch</strong>(218 bytes, Stack size 12 btyes, Obj/drv_dw_syscon.o(.text))<br>
+<p><strong><a name="[1d]"></a>csi_syscon_pclk_active_under_sleep</strong>(68 bytes, Stack size 8 btyes, Obj/drv_dw_syscon.o(.text))<br>
+<p><strong><a name="[1e]"></a>csi_syscon_iwdt_set_switch</strong>(64 bytes, Stack size 8 btyes, Obj/drv_dw_syscon.o(.text))<br>
+<br>[Called By]<ul>
+<li><a href="#[64]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;SystemInit
+</ul>
+<p><strong><a name="[1f]"></a>csi_syscon_iwdt_reload</strong>(94 bytes, Stack size 8 btyes, Obj/drv_dw_syscon.o(.text))<br>
+<p><strong><a name="[20]"></a>csi_syscon_iwdt_config</strong>(74 bytes, Stack size 12 btyes, Obj/drv_dw_syscon.o(.text))<br>
+<p><strong><a name="[21]"></a>csi_syscon_lvd_config</strong>(128 bytes, Stack size 12 btyes, Obj/drv_dw_syscon.o(.text))<br>
+<p><strong><a name="[22]"></a>csi_syscon_lvd_set_switch</strong>(82 bytes, Stack size 8 btyes, Obj/drv_dw_syscon.o(.text))<br>
+<p><strong><a name="[23]"></a>csi_syscon_lvd_get_status</strong>(70 bytes, Stack size 8 btyes, Obj/drv_dw_syscon.o(.text))<br>
+<p><strong><a name="[24]"></a>csi_syscon_exi_set_rising</strong>(130 bytes, Stack size 12 btyes, Obj/drv_dw_syscon.o(.text))<br>
+<p><strong><a name="[25]"></a>csi_syscon_exi_set_falling</strong>(130 bytes, Stack size 12 btyes, Obj/drv_dw_syscon.o(.text))<br>
+<p><strong><a name="[26]"></a>csi_syscon_exi_set_switch</strong>(104 bytes, Stack size 12 btyes, Obj/drv_dw_syscon.o(.text))<br>
+<p><strong><a name="[27]"></a>csi_syscon_clear_exi_pending</strong>(52 bytes, Stack size 8 btyes, Obj/drv_dw_syscon.o(.text))<br>
+<p><strong><a name="[28]"></a>csi_syscon_exi_get_status</strong>(132 bytes, Stack size 12 btyes, Obj/drv_dw_syscon.o(.text))<br>
+<p><strong><a name="[29]"></a>csi_syscon_software_trigger_exi</strong>(52 bytes, Stack size 8 btyes, Obj/drv_dw_syscon.o(.text))<br>
+<p><strong><a name="[2a]"></a>csi_syscon_reset_log_get_status</strong>(46 bytes, Stack size 8 btyes, Obj/drv_dw_syscon.o(.text))<br>
+<p><strong><a name="[2b]"></a>csi_syscon_interrupt_set_switch</strong>(98 bytes, Stack size 12 btyes, Obj/drv_dw_syscon.o(.text))<br>
+<p><strong><a name="[2c]"></a>csi_syscon_interrupt_clear_pending</strong>(52 bytes, Stack size 8 btyes, Obj/drv_dw_syscon.o(.text))<br>
+<p><strong><a name="[2d]"></a>csi_syscon_interrupt_get_status</strong>(100 bytes, Stack size 12 btyes, Obj/drv_dw_syscon.o(.text))<br>
+<p><strong><a name="[2e]"></a>csi_syscon_get_prj_infor</strong>(98 bytes, Stack size 8 btyes, Obj/drv_dw_syscon.o(.text))<br>
+<p><strong><a name="[2f]"></a>csi_syscon_get_opt0_infor</strong>(342 bytes, Stack size 12 btyes, Obj/drv_dw_syscon.o(.text))<br>
+<p><strong><a name="[30]"></a>csi_syscon_hfosc_set_switch</strong>(90 bytes, Stack size 8 btyes, Obj/drv_dw_syscon.o(.text))<br>
+<p><strong><a name="[31]"></a>csi_syscon_clo_config</strong>(68 bytes, Stack size 8 btyes, Obj/drv_dw_syscon.o(.text))<br>
+<br>[Called By]<ul>
+<li><a href="#[0]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
+</ul>
+<p><strong><a name="[32]"></a>ck_coret_irqhandler</strong>(40 bytes, Stack size 8 btyes, Obj/drv_isr.o(.text))<br>
+<p><strong><a name="[33]"></a>isr_ifc_irqhandler</strong>(20 bytes, Stack size 4 btyes, Obj/drv_isr.o(.text))<br>
+<p><strong><a name="[34]"></a>isr_adc_irqhandler</strong>(20 bytes, Stack size 4 btyes, Obj/drv_isr.o(.text))<br>
+<p><strong><a name="[35]"></a>isr_tc0_0_irqhandler</strong>(20 bytes, Stack size 4 btyes, Obj/drv_isr.o(.text))<br>
+<p><strong><a name="[36]"></a>isr_tc0_1_irqhandler</strong>(20 bytes, Stack size 4 btyes, Obj/drv_isr.o(.text))<br>
+<p><strong><a name="[37]"></a>isr_tc0_2_irqhandler</strong>(20 bytes, Stack size 4 btyes, Obj/drv_isr.o(.text))<br>
+<p><strong><a name="[38]"></a>isr_tc1_irqhandler</strong>(20 bytes, Stack size 4 btyes, Obj/drv_isr.o(.text))<br>
+<p><strong><a name="[39]"></a>isr_tc2_irqhandler</strong>(20 bytes, Stack size 4 btyes, Obj/drv_isr.o(.text))<br>
+<p><strong><a name="[3a]"></a>isr_tc3_irqhandler</strong>(20 bytes, Stack size 4 btyes, Obj/drv_isr.o(.text))<br>
+<p><strong><a name="[3b]"></a>isr_led_irqhandler</strong>(20 bytes, Stack size 4 btyes, Obj/drv_isr.o(.text))<br>
+<p><strong><a name="[3c]"></a>isr_epwm_irqhandler</strong>(20 bytes, Stack size 4 btyes, Obj/drv_isr.o(.text))<br>
+<p><strong><a name="[3d]"></a>isr_usart_irqhandler</strong>(20 bytes, Stack size 4 btyes, Obj/drv_isr.o(.text))<br>
+<p><strong><a name="[3e]"></a>isr_uart_irqhandler</strong>(20 bytes, Stack size 4 btyes, Obj/drv_isr.o(.text))<br>
+<p><strong><a name="[3f]"></a>isr_i2c_irqhandler</strong>(20 bytes, Stack size 4 btyes, Obj/drv_isr.o(.text))<br>
+<p><strong><a name="[40]"></a>isr_spi_irqhandler</strong>(20 bytes, Stack size 4 btyes, Obj/drv_isr.o(.text))<br>
+<p><strong><a name="[41]"></a>isr_tkey_irqhandler</strong>(20 bytes, Stack size 4 btyes, Obj/drv_isr.o(.text))<br>
+<p><strong><a name="[42]"></a>isr_comp0_irqhandler</strong>(20 bytes, Stack size 4 btyes, Obj/drv_isr.o(.text))<br>
+<p><strong><a name="[43]"></a>isr_comp1_irqhandler</strong>(20 bytes, Stack size 4 btyes, Obj/drv_isr.o(.text))<br>
+<p><strong><a name="[44]"></a>CORET_IRQHandler</strong>(2 bytes, Stack size 0 btyes, Obj/drv_vectors.o(.text))<br>
+<p><strong><a name="[45]"></a>SYSCON_IRQHandler</strong>(386 bytes, Stack size 40 btyes, Obj/drv_isr.o(.text))<br>
+<p><strong><a name="[46]"></a>IFC_IRQHandler</strong>(2 bytes, Stack size 0 btyes, Obj/drv_vectors.o(.text))<br>
+<p><strong><a name="[47]"></a>ADC_IRQHandler</strong>(2 bytes, Stack size 0 btyes, Obj/drv_vectors.o(.text))<br>
+<p><strong><a name="[48]"></a>TC0_0_IRQHandler</strong>(2 bytes, Stack size 0 btyes, Obj/drv_vectors.o(.text))<br>
+<p><strong><a name="[49]"></a>TC0_1_IRQHandler</strong>(2 bytes, Stack size 0 btyes, Obj/drv_vectors.o(.text))<br>
+<p><strong><a name="[4a]"></a>TC0_2_IRQHandler</strong>(2 bytes, Stack size 0 btyes, Obj/drv_vectors.o(.text))<br>
+<p><strong><a name="[4b]"></a>TC1_IRQHandler</strong>(2 bytes, Stack size 0 btyes, Obj/drv_vectors.o(.text))<br>
+<p><strong><a name="[4c]"></a>TC2_IRQHandler</strong>(2 bytes, Stack size 0 btyes, Obj/drv_vectors.o(.text))<br>
+<p><strong><a name="[4d]"></a>TC3_IRQHandler</strong>(2 bytes, Stack size 0 btyes, Obj/drv_vectors.o(.text))<br>
+<p><strong><a name="[4e]"></a>LED_IRQHandler</strong>(2 bytes, Stack size 0 btyes, Obj/drv_vectors.o(.text))<br>
+<p><strong><a name="[4f]"></a>EPWM_IRQHandler</strong>(2 bytes, Stack size 0 btyes, Obj/drv_vectors.o(.text))<br>
+<p><strong><a name="[50]"></a>EXI0_IRQHandler</strong>(2 bytes, Stack size 0 btyes, Obj/drv_vectors.o(.text))<br>
+<p><strong><a name="[51]"></a>EXI1_IRQHandler</strong>(2 bytes, Stack size 0 btyes, Obj/drv_vectors.o(.text))<br>
+<p><strong><a name="[52]"></a>EXI2_IRQHandler</strong>(2 bytes, Stack size 0 btyes, Obj/drv_vectors.o(.text))<br>
+<p><strong><a name="[53]"></a>EXI3_IRQHandler</strong>(2 bytes, Stack size 0 btyes, Obj/drv_vectors.o(.text))<br>
+<p><strong><a name="[54]"></a>EXI4_IRQHandler</strong>(2 bytes, Stack size 0 btyes, Obj/drv_vectors.o(.text))<br>
+<p><strong><a name="[55]"></a>UART0_IRQHandler</strong>(2 bytes, Stack size 0 btyes, Obj/drv_vectors.o(.text))<br>
+<p><strong><a name="[56]"></a>UART1_IRQHandler</strong>(2 bytes, Stack size 0 btyes, Obj/drv_vectors.o(.text))<br>
+<p><strong><a name="[57]"></a>I2C0_IRQHandler</strong>(2 bytes, Stack size 0 btyes, Obj/drv_vectors.o(.text))<br>
+<p><strong><a name="[58]"></a>SPI0_IRQHandler</strong>(2 bytes, Stack size 0 btyes, Obj/drv_vectors.o(.text))<br>
+<p><strong><a name="[59]"></a>TKEY_IRQHandler</strong>(2 bytes, Stack size 0 btyes, Obj/drv_vectors.o(.text))<br>
+<p><strong><a name="[5a]"></a>CMP0_IRQHandler</strong>(2 bytes, Stack size 0 btyes, Obj/drv_vectors.o(.text))<br>
+<p><strong><a name="[5b]"></a>CMP1_IRQHandler</strong>(2 bytes, Stack size 0 btyes, Obj/drv_vectors.o(.text))<br>
+<p><strong><a name="[5d]"></a>mdelay</strong>(80 bytes, Stack size 0 btyes, Obj/drv_lib.o(.text))<br>
+<p><strong><a name="[5e]"></a>fputc</strong>(40 bytes, Stack size 0 btyes, Obj/drv_minilibc_port.o(.text))<br>
+<p><strong><a name="[5f]"></a>fgetc</strong>(32 bytes, Stack size 0 btyes, Obj/drv_minilibc_port.o(.text))<br>
+<p><strong><a name="[60]"></a>os_critical_enter</strong>(4 bytes, Stack size 0 btyes, critical.o(.text))<br>
+<p><strong><a name="[61]"></a>os_critical_exit</strong>(4 bytes, Stack size 0 btyes, critical.o(.text))<br>
+<p><strong><a name="[62]"></a>Reset_Handler</strong>(82 bytes, Stack size 0 btyes, Obj/drv_startup.o(.text))<br>
+<br>[Stack]<ul><li>Max Depth = 92 
+<li>Call Chain = Reset_Handler &rArr; main &rArr; csi_gpio_pin_func_config  </ul>
+<br>[Calls]<ul>
+<li><a href="#[64]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;SystemInit
+<li><a href="#[0]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
+</ul>
+<p><strong><a name="[63]"></a>SystemCoreClockUpdate</strong>(40 bytes, Stack size 4 btyes, Obj/drv_system.o(.text))<br>
+<p><strong><a name="[64]"></a>SystemInit</strong>(184 bytes, Stack size 20 btyes, Obj/drv_system.o(.text))<br>
+<br>[Stack]<ul><li>Max Depth = 68 
+<li>Call Chain = SystemInit &rArr; csi_syscon_systemclock_config </ul>
+<br>[Calls]<ul>
+<li><a href="#[1e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;csi_syscon_iwdt_set_switch
+<li><a href="#[93]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__udivsi3
+<li><a href="#[19]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;csi_syscon_systemclock_config
+</ul>
+<br>[Called By]<ul>
+<li><a href="#[62]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Reset_Handler
+</ul>
+<p><strong><a name="[65]"></a>trap_c</strong>(20 bytes, Stack size 8 btyes, Obj/drv_trap_c.o(.text))<br>
+<p><strong><a name="[66]"></a>trap</strong>(0 bytes, Stack size 0 btyes, Obj/drv_vectors.o(.text))<br>
+<p><strong><a name="[47]"></a>ADC_IRQHandler</strong>(2 bytes, Stack size 0 btyes, Obj/drv_vectors.o(.text))<br>
+<p><strong><a name="[5a]"></a>CMP0_IRQHandler</strong>(2 bytes, Stack size 0 btyes, Obj/drv_vectors.o(.text))<br>
+<p><strong><a name="[5b]"></a>CMP1_IRQHandler</strong>(2 bytes, Stack size 0 btyes, Obj/drv_vectors.o(.text))<br>
+<p><strong><a name="[44]"></a>CORET_IRQHandler</strong>(2 bytes, Stack size 0 btyes, Obj/drv_vectors.o(.text))<br>
+<p><strong><a name="[67]"></a>Default_Handler</strong>(2 bytes, Stack size 0 btyes, Obj/drv_vectors.o(.text))<br>
+<p><strong><a name="[4f]"></a>EPWM_IRQHandler</strong>(2 bytes, Stack size 0 btyes, Obj/drv_vectors.o(.text))<br>
+<p><strong><a name="[50]"></a>EXI0_IRQHandler</strong>(2 bytes, Stack size 0 btyes, Obj/drv_vectors.o(.text))<br>
+<p><strong><a name="[51]"></a>EXI1_IRQHandler</strong>(2 bytes, Stack size 0 btyes, Obj/drv_vectors.o(.text))<br>
+<p><strong><a name="[52]"></a>EXI2_IRQHandler</strong>(2 bytes, Stack size 0 btyes, Obj/drv_vectors.o(.text))<br>
+<p><strong><a name="[53]"></a>EXI3_IRQHandler</strong>(2 bytes, Stack size 0 btyes, Obj/drv_vectors.o(.text))<br>
+<p><strong><a name="[54]"></a>EXI4_IRQHandler</strong>(2 bytes, Stack size 0 btyes, Obj/drv_vectors.o(.text))<br>
+<p><strong><a name="[57]"></a>I2C0_IRQHandler</strong>(2 bytes, Stack size 0 btyes, Obj/drv_vectors.o(.text))<br>
+<p><strong><a name="[46]"></a>IFC_IRQHandler</strong>(2 bytes, Stack size 0 btyes, Obj/drv_vectors.o(.text))<br>
+<p><strong><a name="[4e]"></a>LED_IRQHandler</strong>(2 bytes, Stack size 0 btyes, Obj/drv_vectors.o(.text))<br>
+<p><strong><a name="[58]"></a>SPI0_IRQHandler</strong>(2 bytes, Stack size 0 btyes, Obj/drv_vectors.o(.text))<br>
+<p><strong><a name="[68]"></a>SYSCON_IRQHandle</strong>(2 bytes, Stack size 0 btyes, Obj/drv_vectors.o(.text))<br>
+<p><strong><a name="[48]"></a>TC0_0_IRQHandler</strong>(2 bytes, Stack size 0 btyes, Obj/drv_vectors.o(.text))<br>
+<p><strong><a name="[49]"></a>TC0_1_IRQHandler</strong>(2 bytes, Stack size 0 btyes, Obj/drv_vectors.o(.text))<br>
+<p><strong><a name="[4a]"></a>TC0_2_IRQHandler</strong>(2 bytes, Stack size 0 btyes, Obj/drv_vectors.o(.text))<br>
+<p><strong><a name="[4b]"></a>TC1_IRQHandler</strong>(2 bytes, Stack size 0 btyes, Obj/drv_vectors.o(.text))<br>
+<p><strong><a name="[4c]"></a>TC2_IRQHandler</strong>(2 bytes, Stack size 0 btyes, Obj/drv_vectors.o(.text))<br>
+<p><strong><a name="[4d]"></a>TC3_IRQHandler</strong>(2 bytes, Stack size 0 btyes, Obj/drv_vectors.o(.text))<br>
+<p><strong><a name="[59]"></a>TKEY_IRQHandler</strong>(2 bytes, Stack size 0 btyes, Obj/drv_vectors.o(.text))<br>
+<p><strong><a name="[55]"></a>UART0_IRQHandler</strong>(2 bytes, Stack size 0 btyes, Obj/drv_vectors.o(.text))<br>
+<p><strong><a name="[56]"></a>UART1_IRQHandler</strong>(2 bytes, Stack size 0 btyes, Obj/drv_vectors.o(.text))<br>
+<p><strong><a name="[69]"></a>malloc</strong>(80 bytes, Stack size 0 btyes, Obj/libc_malloc.o(.text))<br>
+<p><strong><a name="[6a]"></a>free</strong>(54 bytes, Stack size 0 btyes, Obj/libc_malloc.o(.text))<br>
+<p><strong><a name="[6b]"></a>realloc</strong>(146 bytes, Stack size 0 btyes, Obj/libc_malloc.o(.text))<br>
+<p><strong><a name="[6c]"></a>calloc</strong>(156 bytes, Stack size 0 btyes, Obj/libc_malloc.o(.text))<br>
+<p><strong><a name="[6d]"></a>dq_addlast</strong>(160 bytes, Stack size 0 btyes, Obj/mm_dq_addlast.o(.text))<br>
+<p><strong><a name="[6e]"></a>dq_rem</strong>(198 bytes, Stack size 0 btyes, Obj/mm_dq_rem.o(.text))<br>
+<p><strong><a name="[6f]"></a>mm_get_mallinfo</strong>(156 bytes, Stack size 0 btyes, Obj/mm_lib_mallinfo.o(.text))<br>
+<p><strong><a name="[70]"></a>mm_addfreechunk</strong>(308 bytes, Stack size 0 btyes, Obj/mm_mm_addfreechunk.o(.text))<br>
+<p><strong><a name="[71]"></a>mm_free</strong>(530 bytes, Stack size 0 btyes, Obj/mm_mm_free.o(.text))<br>
+<p><strong><a name="[72]"></a>mm_addregion</strong>(344 bytes, Stack size 0 btyes, Obj/mm_mm_initialize.o(.text))<br>
+<p><strong><a name="[73]"></a>mm_initialize</strong>(254 bytes, Stack size 0 btyes, Obj/mm_mm_initialize.o(.text))<br>
+<p><strong><a name="[74]"></a>mm_heap_initialize</strong>(48 bytes, Stack size 0 btyes, Obj/mm_mm_initialize.o(.text))<br>
+<p><strong><a name="[79]"></a>mm_dbg_clone</strong>(176 bytes, Stack size 0 btyes, Obj/mm_mm_leak.o(.text))<br>
+<p><strong><a name="[7a]"></a>mm_statistics_save</strong>(26 bytes, Stack size 0 btyes, Obj/mm_mm_leak.o(.text))<br>
+<p><strong><a name="[7b]"></a>mm_statistics_restore</strong>(26 bytes, Stack size 0 btyes, Obj/mm_mm_leak.o(.text))<br>
+<p><strong><a name="[7c]"></a>mm_do_snapshoot</strong>(296 bytes, Stack size 0 btyes, Obj/mm_mm_leak.o(.text))<br>
+<p><strong><a name="[7d]"></a>mm_release_snapshoot</strong>(222 bytes, Stack size 0 btyes, Obj/mm_mm_leak.o(.text))<br>
+<p><strong><a name="[7e]"></a>mm_leak_add_chunk</strong>(78 bytes, Stack size 0 btyes, Obj/mm_mm_leak.o(.text))<br>
+<p><strong><a name="[7f]"></a>mm_leak_del_chunk</strong>(78 bytes, Stack size 0 btyes, Obj/mm_mm_leak.o(.text))<br>
+<p><strong><a name="[85]"></a>mm_do_statistics</strong>(74 bytes, Stack size 0 btyes, Obj/mm_mm_leak.o(.text))<br>
+<p><strong><a name="[86]"></a>mm_record_minfree</strong>(44 bytes, Stack size 0 btyes, Obj/mm_mm_leak.o(.text))<br>
+<p><strong><a name="[89]"></a>mm_leak_dump</strong>(44 bytes, Stack size 0 btyes, Obj/mm_mm_leak.o(.text))<br>
+<p><strong><a name="[8b]"></a>mm_leak_search_chunk</strong>(272 bytes, Stack size 0 btyes, Obj/mm_mm_leak.o(.text))<br>
+<p><strong><a name="[8c]"></a>mm_show_corrupted</strong>(120 bytes, Stack size 0 btyes, Obj/mm_mm_leak.o(.text))<br>
+<p><strong><a name="[8d]"></a>mm_mallinfo</strong>(392 bytes, Stack size 0 btyes, Obj/mm_mm_mallinfo.o(.text))<br>
+<p><strong><a name="[8e]"></a>mm_max_usedsize_update</strong>(126 bytes, Stack size 0 btyes, Obj/mm_mm_mallinfo.o(.text))<br>
+<p><strong><a name="[8f]"></a>mm_get_max_usedsize</strong>(40 bytes, Stack size 0 btyes, Obj/mm_mm_mallinfo.o(.text))<br>
+<p><strong><a name="[90]"></a>mm_malloc</strong>(612 bytes, Stack size 0 btyes, Obj/mm_mm_malloc.o(.text))<br>
+<p><strong><a name="[91]"></a>mm_size2ndx</strong>(140 bytes, Stack size 0 btyes, Obj/mm_mm_size2ndx.o(.text))<br>
+<p><strong><a name="[92]"></a>__udiv32</strong>(90 bytes, Stack size 0 btyes, _udivsi3.o(.text))<br>
+<p><strong><a name="[93]"></a>__udivsi3</strong>(90 bytes, Stack size 0 btyes, _udivsi3.o(.text))<br>
+<br>[Called By]<ul>
+<li><a href="#[19]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;csi_syscon_systemclock_config
+<li><a href="#[64]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;SystemInit
+</ul>
+<p><strong><a name="[94]"></a>__GI_printf</strong>(34 bytes, Stack size 0 btyes, printf.o(.text))<br>
+<p><strong><a name="[95]"></a>printf</strong>(34 bytes, Stack size 0 btyes, printf.o(.text))<br>
+<p><strong><a name="[96]"></a>__stdio_outs</strong>(52 bytes, Stack size 0 btyes, vprintf.o(.text))<br>
+<p><strong><a name="[97]"></a>__GI_vprintf</strong>(32 bytes, Stack size 0 btyes, vprintf.o(.text))<br>
+<p><strong><a name="[98]"></a>vprintf</strong>(32 bytes, Stack size 0 btyes, vprintf.o(.text))<br>
+<p><strong><a name="[9a]"></a>__v_printf</strong>(1836 bytes, Stack size 0 btyes, __v_printf.o(.text))<br>
+<p><strong><a name="[9c]"></a>__GI___dtostr</strong>(826 bytes, Stack size 0 btyes, __dtostr.o(.text))<br>
+<p><strong><a name="[9d]"></a>__dtostr</strong>(826 bytes, Stack size 0 btyes, __dtostr.o(.text))<br>
+<p><strong><a name="[9e]"></a>__GI___ltostr</strong>(144 bytes, Stack size 0 btyes, __ltostr.o(.text))<br>
+<p><strong><a name="[9f]"></a>__ltostr</strong>(144 bytes, Stack size 0 btyes, __ltostr.o(.text))<br>
+<p><strong><a name="[a0]"></a>__GI_puts</strong>(24 bytes, Stack size 0 btyes, puts.o(.text))<br>
+<p><strong><a name="[a1]"></a>puts</strong>(24 bytes, Stack size 0 btyes, puts.o(.text))<br>
+<p><strong><a name="[a2]"></a>__isnan</strong>(48 bytes, Stack size 0 btyes, __isnan.o(.text))<br>
+<p><strong><a name="[a3]"></a>__GI___lltostr</strong>(176 bytes, Stack size 0 btyes, __lltostr.o(.text))<br>
+<p><strong><a name="[a4]"></a>__lltostr</strong>(176 bytes, Stack size 0 btyes, __lltostr.o(.text))<br>
+<p><strong><a name="[a5]"></a>__GI_fputs</strong>(72 bytes, Stack size 0 btyes, fputs.o(.text))<br>
+<p><strong><a name="[a6]"></a>fputs</strong>(72 bytes, Stack size 0 btyes, fputs.o(.text))<br>
+<p><strong><a name="[a7]"></a>__GI_strtol</strong>(296 bytes, Stack size 0 btyes, _strtol.o(.text))<br>
+<p><strong><a name="[a8]"></a>strtol</strong>(296 bytes, Stack size 0 btyes, _strtol.o(.text))<br>
+<p><strong><a name="[a9]"></a>__GI_strtoul</strong>(268 bytes, Stack size 0 btyes, _strtoul.o(.text))<br>
+<p><strong><a name="[aa]"></a>strtoul</strong>(268 bytes, Stack size 0 btyes, _strtoul.o(.text))<br>
+<p><strong><a name="[ab]"></a>__memset_fast</strong>(136 bytes, Stack size 0 btyes, memset_fast.o(.text))<br>
+<p><strong><a name="[ac]"></a>memset</strong>(136 bytes, Stack size 0 btyes, memset_fast.o(.text))<br>
+<p><strong><a name="[ad]"></a>__strlen_fast</strong>(82 bytes, Stack size 0 btyes, strlen_fast.o(.text))<br>
+<p><strong><a name="[ae]"></a>strlen</strong>(82 bytes, Stack size 0 btyes, strlen_fast.o(.text))<br>
+<p><strong><a name="[af]"></a>__memmove_fast</strong>(148 bytes, Stack size 0 btyes, memmove_fast.o(.text))<br>
+<p><strong><a name="[b0]"></a>memmove</strong>(148 bytes, Stack size 0 btyes, memmove_fast.o(.text))<br>
+<p><strong><a name="[b1]"></a>__strcpy_fast</strong>(176 bytes, Stack size 0 btyes, strcpy_fast.o(.text))<br>
+<p><strong><a name="[b2]"></a>strcpy</strong>(176 bytes, Stack size 0 btyes, strcpy_fast.o(.text))<br>
+<p><strong><a name="[b3]"></a>__memcpy_fast</strong>(100 bytes, Stack size 0 btyes, memcpy_fast.o(.text))<br>
+<p><strong><a name="[b4]"></a>memcpy</strong>(100 bytes, Stack size 0 btyes, memcpy_fast.o(.text))<br>
+<p><strong><a name="[b5]"></a>__GI_strchr</strong>(18 bytes, Stack size 0 btyes, strchr.o(.text))<br>
+<p><strong><a name="[b6]"></a>strchr</strong>(18 bytes, Stack size 0 btyes, strchr.o(.text))<br>
+<p><strong><a name="[b7]"></a>__GI_strerror</strong>(28 bytes, Stack size 0 btyes, strerror.o(.text))<br>
+<p><strong><a name="[b8]"></a>strerror</strong>(28 bytes, Stack size 0 btyes, strerror.o(.text))<br>
+<p><strong><a name="[b9]"></a>__GI_isspace</strong>(20 bytes, Stack size 0 btyes, isspace.o(.text))<br>
+<p><strong><a name="[ba]"></a>isspace</strong>(20 bytes, Stack size 0 btyes, isspace.o(.text))<br>
+<p><strong><a name="[bb]"></a>minilibc_init</strong>(60 bytes, Stack size 0 btyes, minilibc_init.o(.text))<br>
+<p><strong><a name="[bc]"></a>__GI_os_critical_open</strong>(4 bytes, Stack size 0 btyes, critical.o(.text))<br>
+<p><strong><a name="[bd]"></a>os_critical_open</strong>(4 bytes, Stack size 0 btyes, critical.o(.text))<br>
+<p><strong><a name="[be]"></a>__GI_os_critical_enter</strong>(4 bytes, Stack size 0 btyes, critical.o(.text))<br>
+<p><strong><a name="[60]"></a>os_critical_enter</strong>(4 bytes, Stack size 0 btyes, critical.o(.text))<br>
+<p><strong><a name="[bf]"></a>__GI_os_critical_exit</strong>(4 bytes, Stack size 0 btyes, critical.o(.text))<br>
+<p><strong><a name="[61]"></a>os_critical_exit</strong>(4 bytes, Stack size 0 btyes, critical.o(.text))<br>
+<p><strong><a name="[c0]"></a>__GI_os_critical_close</strong>(4 bytes, Stack size 0 btyes, critical.o(.text))<br>
+<p><strong><a name="[c1]"></a>os_critical_close</strong>(4 bytes, Stack size 0 btyes, critical.o(.text))<br>
+<p><strong><a name="[c2]"></a>__isinf</strong>(48 bytes, Stack size 0 btyes, __isinf.o(.text))<br>
+<p><strong><a name="[c3]"></a>__div32</strong>(124 bytes, Stack size 0 btyes, _divsi3.o(.text))<br>
+<p><strong><a name="[c4]"></a>__divsi3</strong>(124 bytes, Stack size 0 btyes, _divsi3.o(.text))<br>
+<p><strong><a name="[c5]"></a>__modsi3</strong>(86 bytes, Stack size 0 btyes, _modsi3.o(.text))<br>
+<p><strong><a name="[c6]"></a>__rem32</strong>(86 bytes, Stack size 0 btyes, _modsi3.o(.text))<br>
+<p><strong><a name="[c7]"></a>__umodsi3</strong>(56 bytes, Stack size 0 btyes, _umodsi3.o(.text))<br>
+<p><strong><a name="[c8]"></a>__urem32</strong>(56 bytes, Stack size 0 btyes, _umodsi3.o(.text))<br>
+<p><strong><a name="[c9]"></a>__udivdi3</strong>(940 bytes, Stack size 0 btyes, _udivdi3.o(.text))<br>
+<p><strong><a name="[ca]"></a>__umoddi3</strong>(928 bytes, Stack size 0 btyes, _umoddi3.o(.text))<br>
+<p><strong><a name="[cc]"></a>__adddf3</strong>(46 bytes, Stack size 0 btyes, _addsub_df.o(.text))<br>
+<p><strong><a name="[cd]"></a>__subdf3</strong>(54 bytes, Stack size 0 btyes, _addsub_df.o(.text))<br>
+<p><strong><a name="[ce]"></a>__muldf3</strong>(564 bytes, Stack size 0 btyes, _mul_df.o(.text))<br>
+<p><strong><a name="[cf]"></a>__divdf3</strong>(340 bytes, Stack size 0 btyes, _div_df.o(.text))<br>
+<p><strong><a name="[d0]"></a>__eqdf2</strong>(58 bytes, Stack size 0 btyes, _eq_df.o(.text))<br>
+<p><strong><a name="[d1]"></a>__gtdf2</strong>(60 bytes, Stack size 0 btyes, _gt_df.o(.text))<br>
+<p><strong><a name="[d2]"></a>__gedf2</strong>(60 bytes, Stack size 0 btyes, _ge_df.o(.text))<br>
+<p><strong><a name="[d3]"></a>__ltdf2</strong>(58 bytes, Stack size 0 btyes, _lt_df.o(.text))<br>
+<p><strong><a name="[d4]"></a>__floatsidf</strong>(112 bytes, Stack size 0 btyes, _si_to_df.o(.text))<br>
+<p><strong><a name="[d5]"></a>__fixdfsi</strong>(112 bytes, Stack size 0 btyes, _df_to_si.o(.text))<br>
+<p><strong><a name="[d6]"></a>__muldi3</strong>(68 bytes, Stack size 0 btyes, _muldi3.o(.text))<br>
+<p><strong><a name="[d7]"></a>__clzsi2</strong>(64 bytes, Stack size 0 btyes, _clzsi2.o(.text))<br>
+<p><strong><a name="[d8]"></a>__pack_d</strong>(420 bytes, Stack size 0 btyes, _pack_df.o(.text))<br>
+<p><strong><a name="[d9]"></a>__unpack_d</strong>(200 bytes, Stack size 0 btyes, _unpack_df.o(.text))<br>
+<p><strong><a name="[da]"></a>__fpcmp_parts_d</strong>(140 bytes, Stack size 0 btyes, _fpcmp_parts_df.o(.text))<br>
+<h3>Local Symbols</h3>
+<p><strong><a name="[5c]"></a>_mdelay</strong>(196 bytes, Stack size 0 btyes, Obj/drv_lib.o(.text))<br>
+<p><strong><a name="[75]"></a>mdbg_calc_magic</strong>(160 bytes, Stack size 0 btyes, Obj/mm_mm_leak.o(.text))<br>
+<p><strong><a name="[76]"></a>mdbg_check_magic_hdr</strong>(70 bytes, Stack size 0 btyes, Obj/mm_mm_leak.o(.text))<br>
+<p><strong><a name="[77]"></a>mdbg_check_magic_end</strong>(190 bytes, Stack size 0 btyes, Obj/mm_mm_leak.o(.text))<br>
+<p><strong><a name="[78]"></a>addr2hash</strong>(106 bytes, Stack size 0 btyes, Obj/mm_mm_leak.o(.text))<br>
+<p><strong><a name="[80]"></a>is_valid_address</strong>(164 bytes, Stack size 0 btyes, Obj/mm_mm_leak.o(.text))<br>
+<p><strong><a name="[81]"></a>traverse_one_list</strong>(324 bytes, Stack size 0 btyes, Obj/mm_mm_leak.o(.text))<br>
+<p><strong><a name="[82]"></a>is_corrupted</strong>(160 bytes, Stack size 0 btyes, Obj/mm_mm_leak.o(.text))<br>
+<p><strong><a name="[83]"></a>show_chunk_snapshot</strong>(108 bytes, Stack size 0 btyes, Obj/mm_mm_leak.o(.text))<br>
+<p><strong><a name="[84]"></a>mm_snapshoot_dump</strong>(104 bytes, Stack size 0 btyes, Obj/mm_mm_leak.o(.text))<br>
+<p><strong><a name="[87]"></a>show_corrupted_chunk</strong>(198 bytes, Stack size 0 btyes, Obj/mm_mm_leak.o(.text))<br>
+<p><strong><a name="[88]"></a>dump_corrupted_list</strong>(54 bytes, Stack size 0 btyes, Obj/mm_mm_leak.o(.text))<br>
+<p><strong><a name="[8a]"></a>search_nearest</strong>(136 bytes, Stack size 0 btyes, Obj/mm_mm_leak.o(.text))<br>
+<p><strong><a name="[99]"></a>write_pad</strong>(72 bytes, Stack size 0 btyes, __v_printf.o(.text))<br>
+<p><strong><a name="[9b]"></a>copystring</strong>(38 bytes, Stack size 0 btyes, __dtostr.o(.text))<br>
+<p><strong><a name="[cb]"></a>_fpadd_parts</strong>(724 bytes, Stack size 0 btyes, _addsub_df.o(.text))<br>
+</body>
+</html>

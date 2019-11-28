@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<Session Name="G:\SW_HOME\CSKY\CSI\APT32F172A\CSI_APT32F172\Example\Example\Example.cdkws">
-  <int Value="0" Name="m_selectedTab"/>
-  <wxString Value="G:\SW_HOME\CSKY\CSI\APT32F172A\CSI_APT32F172\Example\Example\Example.cdkws" Name="m_workspaceName"/>
-  <TabInfoArray Name="TabInfoArray"/>
-  <SerializedObject Name="m_breakpoints">
-    <long Value="0" Name="Count"/>
-  </SerializedObject>
-</Session>
